@@ -1,0 +1,55 @@
+﻿@page "/"
+@using Microsoft.Extensions.Logging
+
+@inject IJSRuntime js
+
+@using System.Net.Http
+
+@inject Microsoft.Extensions.Logging.ILogger<Index> logger
+@inject NavigationManager navigationManager
+
+<h1>@(roles.Contains("admin") ? "Отчеты сотрудников" : "Ваши отчеты")</h1>
+
+@foreach (var report in reports)
+{
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">@(report.ReportSenderName ?? "Loading...")</h4>
+                    <p class="card-text">@report.Text</p>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+@code {
+
+    List<ITLab.TestFront.Models.CompactReport> reports = new List<Models.CompactReport>();
+
+    [CascadingParameter]
+    protected HttpClient httpClient { get; set; }
+    [CascadingParameter]
+    protected List<string> roles { get; set; }
+    JsonSerializerOptions jsonOptions = new JsonSerializerOptions
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        var resp = await httpClient.GetAsync("/api/reports");
+        resp.EnsureSuccessStatusCode();
+        var text = await resp.Content.ReadAsStringAsync();
+        logger.LogInformation(text);
+        reports = System.Text.Json.JsonSerializer.Deserialize<List<ITLab.TestFront.Models.CompactReport>>(text, jsonOptions);
+        foreach (var report in reports)
+        {
+            var userText = (await (await httpClient.GetAsync($"/api/user/{report.ReportSender}")).Content.ReadAsStringAsync());
+            var userModel = JsonSerializer.Deserialize<ITLab.TestFront.Models.UserModel>(userText, jsonOptions);
+            report.ReportSenderName = $"{userModel.LastName} {userModel.FirstName} {userModel.MiddleName}";
+        }
+    }
+}

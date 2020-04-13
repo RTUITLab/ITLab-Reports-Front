@@ -1,0 +1,47 @@
+﻿@page "/report/create"
+@using Microsoft.Extensions.Logging
+
+@inject IJSRuntime js
+
+@using System.Net.Http
+
+@inject Microsoft.Extensions.Logging.ILogger<Index> logger
+@inject NavigationManager navigationManager
+
+<h1>Написание отчета</h1>
+
+@if (!string.IsNullOrEmpty(error))
+{
+    <div class="alert alert-danger" role="alert">
+        @error
+    </div>
+}
+
+<EditForm Model="createReportRequest" OnValidSubmit="SendCreateReportRequest">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="form-group">
+        <label for="exampleFormControlTextarea1">Опишите, что вы делали за последнее время, что вы считаете важным при оценке вашей работы</label>
+        <InputTextArea class="form-control" id="exampleFormControlTextarea1" rows="15" @bind-Value="createReportRequest.Text"/>
+    </div>
+    <button type="submit" class="btn btn-primary mb-2">Отправить</button>
+</EditForm>
+@code {
+
+    string error;
+
+    CreateReportRequest createReportRequest = new CreateReportRequest();
+    [CascadingParameter]
+    HttpClient httpClient { get; set; }
+
+    private async Task SendCreateReportRequest()
+    {
+        var jsonRaw = JsonSerializer.Serialize(createReportRequest);
+        var content = new StringContent(jsonRaw, System.Text.Encoding.UTF8, "application/json");
+        var resp = await httpClient.PostAsync("api/reports", content);
+        if (!resp.IsSuccessStatusCode)
+        {
+            error = resp.StatusCode.ToString();
+        }
+    }
+}
