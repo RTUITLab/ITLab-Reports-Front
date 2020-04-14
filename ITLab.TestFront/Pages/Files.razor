@@ -1,0 +1,86 @@
+﻿@page "/test/files"
+@using Microsoft.Extensions.Logging
+@using Blazor.FileReader
+
+@inject IJSRuntime js
+@inject Blazor.FileReader.IFileReaderService fileReaderService
+
+
+@using System.Net.Http
+
+@inject Microsoft.Extensions.Logging.ILogger<Index> logger
+@inject NavigationManager navigationManager
+
+<h1>Список доступных файлов</h1>
+
+<ul>
+
+    @foreach (var file in files)
+    {
+        <li>@file.Filename <button @onclick="async () => await Download(file.Filename, file.Id)" >Скачать</button></li>
+    }
+</ul>
+
+<h1>Добавить файл</h1>
+
+<input type="file" @ref=inputElement />
+<button @onclick=ReadFile class="btn btn-primary">Read file</button>
+<button @onclick=ClearFile class="btn btn-primary">Clear</button>
+
+<textarea style="max-width: 100%;" cols="50" rows="20">@Output</textarea>
+@code {
+
+    string error;
+
+    List<FileObjectModel> files = new List<FileObjectModel>();
+
+    [CascadingParameter]
+    HttpClient httpClient { get; set; }
+
+    ElementReference inputElement;
+
+    string Output { get; set; }
+
+
+
+    private async Task Download(string fileName, string id)
+    {
+        var bytes = await httpClient.GetByteArrayAsync($"http://localhost:8080/download/{id}");
+        await js.InvokeVoidAsync("saveAsFile", fileName, Convert.ToBase64String(bytes));
+    }
+
+    public async Task ClearFile()
+    {
+        await fileReaderService.CreateReference(inputElement).ClearValue();
+    }
+    public async Task ReadFile()
+    {
+        Output = string.Empty;
+        this.StateHasChanged();
+        var nl = Environment.NewLine;
+        var files = (await fileReaderService.CreateReference(inputElement).EnumerateFilesAsync()).ToList();
+        Console.WriteLine(files.Count);
+        var fileInfo = await files[0].ReadFileInfoAsync();
+
+        MultipartFormDataContent form = new MultipartFormDataContent();
+        using var fileStream = await files[0].OpenReadAsync();
+        var array = new byte[fileInfo.Size];
+        Console.WriteLine($"array {array.Length}");
+        var readed = await fileStream.ReadAsync(array, 0, array.Length);
+        Output += readed.ToString();
+        form.Add(new ByteArrayContent(array, 0, array.Length), "uploadingForm", fileInfo.Name);
+        HttpResponseMessage response = await httpClient.PostAsync("http://localhost:8080/upload", form);
+        Output += response.StatusCode.ToString();
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var filesList = await httpClient.GetStringAsync("http://localhost:8080/files");
+        files = JsonSerializer.Deserialize<List<FileObjectModel>>(filesList, new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        });
+
+    }
+}
