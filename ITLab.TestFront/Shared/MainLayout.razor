@@ -6,8 +6,8 @@
 </div>
 
 <div class="main">
-    <div class="top-row px-4">
-        <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+    <div class="top-row px-4" style="color: red">
+        Тестовый сайт, исключительно для проверки функционала и идей. Не кидать камнями за дизайн
     </div>
     @if (error)
     {
@@ -51,7 +51,7 @@
             raw += '=';
         }
         var doc = JsonDocument.Parse(Convert.FromBase64String(raw));
-        if (doc.RootElement.TryGetProperty("role", out var roleClaim))
+        if (doc.RootElement.TryGetProperty("itlab", out var roleClaim))
         {
             if (roleClaim.ValueKind == JsonValueKind.String)
             {

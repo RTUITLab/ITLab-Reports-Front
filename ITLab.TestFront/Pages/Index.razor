@@ -8,7 +8,7 @@
 @inject Microsoft.Extensions.Logging.ILogger<Index> logger
 @inject NavigationManager navigationManager
 
-<h1>@(roles.Contains("admin") ? "Отчеты сотрудников" : "Ваши отчеты")</h1>
+<h1>@(roles.Contains("reports.admin") ? "Отчеты сотрудников" : "Ваши отчеты")</h1>
 
 @foreach (var report in reports)
 {
