@@ -44,7 +44,7 @@ namespace ITLab.TestFront
             {
                 app.UseExceptionHandler("/Error");
             }
-
+            app.UsePathBase("/test");
             app.UseStaticFiles();
 
             app.UseRouting();
