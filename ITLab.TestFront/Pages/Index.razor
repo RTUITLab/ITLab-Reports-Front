@@ -17,7 +17,9 @@
             <div class="card">
                 <div class="card-body">
                     <h4 class="card-title">@(report.ReportSenderName ?? "Loading...")</h4>
-                    <p  style="white-space: pre-line" class="card-text">@report.Text</p>
+                    <p style="white-space: pre-line" class="card-text">
+                        @((MarkupString)Markdig.Markdown.ToHtml(report.Text))
+                    </p>
                     <button class="btn btn-danger" @onclick="@(async () => await Delete(report.Id))">Удалить</button>
                     <div class="card-footer">@($"{report.Date.Year}.{report.Date.Month.ToString("D2")}.{report.Date.Day.ToString("D2")}")</div>
                 </div>
@@ -33,6 +35,11 @@
     protected HttpClient httpClient { get; set; }
     [CascadingParameter]
     protected List<string> roles { get; set; }
+    [CascadingParameter]
+    ConnectionStrings connectionStrings { get; set; }
+
+
+
     JsonSerializerOptions jsonOptions = new JsonSerializerOptions
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -42,21 +49,22 @@
     {
         await base.OnInitializedAsync();
 
-        var resp = await httpClient.GetAsync("/api/reports?sorted_by=date");
+        var resp = await httpClient.GetAsync(connectionStrings.ReportsList);
         resp.EnsureSuccessStatusCode();
         var text = await resp.Content.ReadAsStringAsync();
         logger.LogInformation(text);
         reports = System.Text.Json.JsonSerializer.Deserialize<List<ITLab.TestFront.Models.CompactReport>>(text, jsonOptions);
         foreach (var report in reports)
         {
-            var userText = (await (await httpClient.GetAsync($"/api/user/{report.ReportSender}")).Content.ReadAsStringAsync());
+            var userText = (await (await httpClient.GetAsync(connectionStrings.UserInfo(report.ReportSender)
+                )).Content.ReadAsStringAsync());
             var userModel = JsonSerializer.Deserialize<ITLab.TestFront.Models.UserModel>(userText, jsonOptions);
             report.ReportSenderName = $"{userModel.LastName} {userModel.FirstName} {userModel.MiddleName}";
         }
         reports.Reverse();
     }
 
-    private async Task Delete (string id)
+    private async Task Delete(string id)
     {
         await httpClient.DeleteAsync($"api/reports/{id}");
         await OnInitializedAsync();

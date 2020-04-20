@@ -17,7 +17,9 @@
 
     @foreach (var file in files)
     {
-        <li>@file.Filename <button @onclick="async () => await Download(file.Filename, file.Id)" >Скачать</button></li>
+        <li>@file.Filename <button @onclick="async () => await Download(file.Filename, file.Id)">Скачать</button></li>
+        <img style="width:100px" src="@connectionStrings.DownloadFile(file.Id)" />
+        <p>@connectionStrings.DownloadFile(file.Id)</p>
     }
 </ul>
 
@@ -37,6 +39,9 @@
     [CascadingParameter]
     HttpClient httpClient { get; set; }
 
+
+    [CascadingParameter]
+    ConnectionStrings connectionStrings { get; set; }
     ElementReference inputElement;
 
     string Output { get; set; }
@@ -45,7 +50,7 @@
 
     private async Task Download(string fileName, string id)
     {
-        var bytes = await httpClient.GetByteArrayAsync($"http://localhost:8080/download/{id}");
+        var bytes = await httpClient.GetByteArrayAsync(connectionStrings.DownloadFile(id));
         await js.InvokeVoidAsync("saveAsFile", fileName, Convert.ToBase64String(bytes));
     }
 
@@ -69,14 +74,17 @@
         var readed = await fileStream.ReadAsync(array, 0, array.Length);
         Output += readed.ToString();
         form.Add(new ByteArrayContent(array, 0, array.Length), "uploadingForm", fileInfo.Name);
-        HttpResponseMessage response = await httpClient.PostAsync("http://localhost:8080/upload", form);
+        HttpResponseMessage response = await httpClient.PostAsync(connectionStrings.UploadFile, form);
+        var content = await response.Content.ReadAsStringAsync();
         Output += response.StatusCode.ToString();
+        Output += content;
     }
 
 
     protected override async Task OnInitializedAsync()
     {
-        var filesList = await httpClient.GetStringAsync("http://localhost:8080/files");
+        var filesList = await httpClient.GetStringAsync(connectionStrings.FilesList);
+        logger.LogInformation(filesList);
         files = JsonSerializer.Deserialize<List<FileObjectModel>>(filesList, new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,

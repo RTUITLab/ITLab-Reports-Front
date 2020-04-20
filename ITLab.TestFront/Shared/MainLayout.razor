@@ -1,71 +1,91 @@
 ﻿@inherits LayoutComponentBase
 @inject NavigationManager navigationManager
 
-<div class="sidebar">
-    <NavMenu />
-</div>
+    <style>
+        img {
+            max-width: 800px;
+        }
+    </style>
 
-<div class="main">
-    <div class="top-row px-4" style="color: red">
-        Тестовый сайт, исключительно для проверки функционала и идей. Не кидать камнями за дизайн
+    <div class="sidebar">
+        <NavMenu />
     </div>
-    @if (error)
-    {
-        <p>Неверные параметры адресной строки</p>
-    }
-    else
-    {
-        <CascadingValue Value="httpClient">
-            <CascadingValue Value="roles">
-                <div class="content px-4">
-                    @Body
-                </div>
+
+    <div class="main">
+        <div class="top-row px-4" style="color: red">
+            Тестовый сайт, исключительно для проверки функционала и идей. Не кидать камнями за дизайн
+        </div>
+        @if (error)
+        {
+            <p>Неверные параметры адресной строки</p>
+        }
+        else
+        {
+            <CascadingValue Value="connectionStrings">
+                <CascadingValue Value="httpClient">
+                    <CascadingValue Value="roles">
+                        <div class="content px-4">
+                            @Body
+                        </div>
+                    </CascadingValue>
+                </CascadingValue>
             </CascadingValue>
-        </CascadingValue>
-    }
-</div>
-
-@code {
-
-    bool error;
-    HttpClient httpClient = new HttpClient();
-    List<string> roles = new List<string>();
-    protected override void OnInitialized()
-    {
-        base.OnInitialized();
-        var uri = new Uri(navigationManager.Uri);
-        var queryString = System.Web.HttpUtility.ParseQueryString(uri.Query);
-        var token = queryString.Get("token");
-        var baseAddress = queryString.Get("baseAddress");
-        if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(baseAddress))
-        {
-            error = true;
-            return;
         }
-        httpClient = new HttpClient();
-        httpClient.BaseAddress = new Uri(baseAddress);
-        httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-        var raw = token.Substring(token.IndexOf('.') + 1, token.LastIndexOf('.') - token.IndexOf('.') - 1);
-        while (raw.Length % 4 != 0)
+    </div>
+
+    @code {
+
+        bool error;
+        HttpClient httpClient = new HttpClient();
+        List<string> roles = new List<string>();
+        ConnectionStrings connectionStrings = new ConnectionStrings();
+
+        protected override void OnInitialized()
         {
-            raw += '=';
-        }
-        var doc = JsonDocument.Parse(Convert.FromBase64String(raw));
-        if (doc.RootElement.TryGetProperty("itlab", out var roleClaim))
-        {
-            if (roleClaim.ValueKind == JsonValueKind.String)
+            base.OnInitialized();
+
+            var uri = new Uri(navigationManager.Uri);
+            var queryString = System.Web.HttpUtility.ParseQueryString(uri.Query);
+            var token = queryString.Get("token");
+            var baseAddress = queryString.Get("baseAddress");
+            var filesBaseAddress = queryString.Get("filesBaseAddress");
+            if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(baseAddress) || string.IsNullOrEmpty(filesBaseAddress))
             {
-                roles.Add(roleClaim.ToString());
+                error = true;
+                return;
             }
-            else
+            if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(baseAddress))
             {
-                foreach (var item in roleClaim.EnumerateArray())
+                error = true;
+                return;
+            }
+            connectionStrings.BaseAddress = baseAddress;
+            connectionStrings.FileServerBase = filesBaseAddress;
+
+
+            httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            var raw = token.Substring(token.IndexOf('.') + 1, token.LastIndexOf('.') - token.IndexOf('.') - 1);
+            while (raw.Length % 4 != 0)
+            {
+                raw += '=';
+            }
+            var doc = JsonDocument.Parse(Convert.FromBase64String(raw));
+            if (doc.RootElement.TryGetProperty("itlab", out var roleClaim))
+            {
+                if (roleClaim.ValueKind == JsonValueKind.String)
                 {
-                    roles.Add(item.ToString());
+                    roles.Add(roleClaim.ToString());
+                }
+                else
+                {
+                    foreach (var item in roleClaim.EnumerateArray())
+                    {
+                        roles.Add(item.ToString());
+                    }
                 }
             }
         }
-    }
 
-}
+    }
 
