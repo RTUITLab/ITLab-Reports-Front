@@ -31,6 +31,16 @@ namespace ITLab.TestFront.Models
                 return builder.Uri;
             }
         }
+
+        public Uri DeleteReport(string id)
+        {
+            var builder = new UriBuilder(BaseAddress)
+            {
+                Path = $"api/reports/{id}"
+            };
+            return builder.Uri;
+        }
+
         public Uri UserInfo(Guid userId)
         {
             var builder = new UriBuilder(BaseAddress)
