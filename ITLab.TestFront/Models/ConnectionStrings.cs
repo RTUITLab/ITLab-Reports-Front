@@ -8,50 +8,8 @@ namespace ITLab.TestFront.Models
     public class ConnectionStrings
     {
         public string BaseAddress { get; set; }
-        public Uri ReportsList
-        {
-            get
-            {
-                var builder = new UriBuilder(BaseAddress)
-                {
-                    Path = "/api/reports",
-                    Query = "?sorted_by=date"
-                };
-                return builder.Uri;
-            }
-        }
-        public Uri CreateReport
-        {
-            get
-            {
-                var builder = new UriBuilder(BaseAddress)
-                {
-                    Path = "/api/reports"
-                };
-                return builder.Uri;
-            }
-        }
-
-        public Uri DeleteReport(string id)
-        {
-            var builder = new UriBuilder(BaseAddress)
-            {
-                Path = $"api/reports/{id}"
-            };
-            return builder.Uri;
-        }
-
-        public Uri UserInfo(Guid userId)
-        {
-            var builder = new UriBuilder(BaseAddress)
-            {
-                Path = $"/api/user/{userId}"
-            };
-            return builder.Uri;
-        }
-
         public string FileServerBase { get; set; }
-
+        public string UserId { get; set; }
         public Uri FilesList
         {
             get

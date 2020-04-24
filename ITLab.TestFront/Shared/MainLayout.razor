@@ -1,91 +1,118 @@
 ﻿@inherits LayoutComponentBase
 @inject NavigationManager navigationManager
 
-    <style>
-        img {
-            max-width: 800px;
-        }
-    </style>
+<style>
+    img {
+        max-width: 800px;
+    }
+</style>
 
-    <div class="sidebar">
-        <NavMenu />
-    </div>
-
-    <div class="main">
-        <div class="top-row px-4" style="color: red">
-            Тестовый сайт, исключительно для проверки функционала и идей. Не кидать камнями за дизайн
-        </div>
-        @if (error)
-        {
-            <p>Неверные параметры адресной строки</p>
-        }
-        else
-        {
+<CascadingValue Value="reportsApi">
+    <CascadingValue Value="usersApi">
+        <CascadingValue Value="salaryApi">
             <CascadingValue Value="connectionStrings">
                 <CascadingValue Value="httpClient">
                     <CascadingValue Value="roles">
-                        <div class="content px-4">
-                            @Body
+                        <div class="sidebar">
+                            <NavMenu />
                         </div>
+
+                        <div class="main">
+                            <div class="top-row px-4" style="color: red">
+                                Тестовый сайт, исключительно для проверки функционала и идей. Не кидать камнями за дизайн
+                            </div>
+                            @if (error)
+                            {
+                                <p>Неверные параметры адресной строки</p>
+                            }
+                            else
+                            {
+                                <div class="content px-4">
+                                    @Body
+                                </div>
+                            }
+                        </div>
+
                     </CascadingValue>
                 </CascadingValue>
             </CascadingValue>
-        }
-    </div>
+        </CascadingValue>
+    </CascadingValue>
+</CascadingValue>
+@code {
 
-    @code {
+    bool error;
+    HttpClient httpClient = new HttpClient();
+    List<string> roles = new List<string>();
+    ConnectionStrings connectionStrings = new ConnectionStrings();
 
-        bool error;
-        HttpClient httpClient = new HttpClient();
-        List<string> roles = new List<string>();
-        ConnectionStrings connectionStrings = new ConnectionStrings();
+    IReportsApi reportsApi;
+    IUsersApi usersApi;
+    ISalaryApi salaryApi;
 
-        protected override void OnInitialized()
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        var uri = new Uri(navigationManager.Uri);
+        var queryString = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        var token = queryString.Get("token");
+        var baseAddress = queryString.Get("baseAddress");
+        var filesBaseAddress = queryString.Get("filesBaseAddress");
+        var salaryBaseAddress = queryString.Get("salaryBaseAddress");
+        if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(baseAddress) || string.IsNullOrEmpty(filesBaseAddress))
         {
-            base.OnInitialized();
+            error = true;
+            return;
+        }
+        if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(baseAddress))
+        {
+            error = true;
+            return;
+        }
 
-            var uri = new Uri(navigationManager.Uri);
-            var queryString = System.Web.HttpUtility.ParseQueryString(uri.Query);
-            var token = queryString.Get("token");
-            var baseAddress = queryString.Get("baseAddress");
-            var filesBaseAddress = queryString.Get("filesBaseAddress");
-            if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(baseAddress) || string.IsNullOrEmpty(filesBaseAddress))
-            {
-                error = true;
-                return;
-            }
-            if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(baseAddress))
-            {
-                error = true;
-                return;
-            }
-            connectionStrings.BaseAddress = baseAddress;
-            connectionStrings.FileServerBase = filesBaseAddress;
+        if (string.IsNullOrEmpty(salaryBaseAddress))
+        {
+            salaryBaseAddress = baseAddress;
+        }
+
+        var refitSettings = new Refit.RefitSettings
+        {
+            AuthorizationHeaderValueGetter = () => Task.FromResult(token)
+        };
+
+        reportsApi = Refit.RestService.For<IReportsApi>(baseAddress, refitSettings);
+        usersApi = Refit.RestService.For<IUsersApi>(baseAddress, refitSettings);
+        salaryApi = Refit.RestService.For<ISalaryApi>(salaryBaseAddress, refitSettings);
+
+        connectionStrings.BaseAddress = baseAddress;
+        connectionStrings.FileServerBase = filesBaseAddress;
 
 
-            httpClient = new HttpClient();
-            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            var raw = token.Substring(token.IndexOf('.') + 1, token.LastIndexOf('.') - token.IndexOf('.') - 1);
-            while (raw.Length % 4 != 0)
+        httpClient = new HttpClient();
+        httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        var raw = token.Substring(token.IndexOf('.') + 1, token.LastIndexOf('.') - token.IndexOf('.') - 1);
+        while (raw.Length % 4 != 0)
+        {
+            raw += '=';
+        }
+        var doc = JsonDocument.Parse(Convert.FromBase64String(raw));
+        connectionStrings.UserId = doc.RootElement.GetProperty("sub").GetString();
+        if (doc.RootElement.TryGetProperty("itlab", out var roleClaim))
+        {
+            if (roleClaim.ValueKind == JsonValueKind.String)
             {
-                raw += '=';
+                roles.Add(roleClaim.ToString());
             }
-            var doc = JsonDocument.Parse(Convert.FromBase64String(raw));
-            if (doc.RootElement.TryGetProperty("itlab", out var roleClaim))
+            else
             {
-                if (roleClaim.ValueKind == JsonValueKind.String)
+                foreach (var item in roleClaim.EnumerateArray())
                 {
-                    roles.Add(roleClaim.ToString());
-                }
-                else
-                {
-                    foreach (var item in roleClaim.EnumerateArray())
-                    {
-                        roles.Add(item.ToString());
-                    }
+                    roles.Add(item.ToString());
                 }
             }
         }
-
     }
+
+}
 

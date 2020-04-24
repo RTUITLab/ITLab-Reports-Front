@@ -9,7 +9,6 @@ namespace ITLab.TestFront.Models
     {
         public string Id { get; set; }
         public Guid ReportSender { get; set; }
-        public string ReportSenderName { get; set; }
         public DateTime Date { get; set; }
         public string Text { get; set; }
         public bool Archived { get; set; }

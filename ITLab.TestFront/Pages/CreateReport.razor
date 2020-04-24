@@ -121,14 +121,18 @@
     [CascadingParameter]
     ConnectionStrings connectionStrings { get; set; }
 
+    [CascadingParameter]
+    IReportsApi reportsApi { get; set; }
+
     private async Task SendCreateReportRequest()
     {
-        var jsonRaw = JsonSerializer.Serialize(createReportRequest);
-        var content = new StringContent(jsonRaw, System.Text.Encoding.UTF8, "application/json");
-        var resp = await httpClient.PostAsync(connectionStrings.CreateReport, content);
-        if (!resp.IsSuccessStatusCode)
+        try
         {
-            error = resp.StatusCode.ToString();
+            await reportsApi.CreateReport(createReportRequest);
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
         }
         navigationManager.NavigateTo(CalcHref("/test/"));
     }

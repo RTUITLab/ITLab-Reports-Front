@@ -1,7 +1,7 @@
 ﻿@inject NavigationManager navigationManager
 
 <div class="top-row pl-4 navbar navbar-dark">
-    <a class="navbar-brand" href="">ITLab.TestFront</a>
+    <a class="navbar-brand" href="@connectionStrings.BaseAddress">Вернуться</a>
     <button class="navbar-toggler" @onclick="ToggleNavMenu">
         <span class="navbar-toggler-icon"></span>
     </button>
@@ -10,10 +10,18 @@
 <div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
     <ul class="nav flex-column">
         <li class="nav-item px-3">
-            <NavLink class="nav-link" href="@CalcHref("/test/")" Match="NavLinkMatch.All">
-                <span class="oi oi-home" aria-hidden="true"></span> Отчеты
+            <NavLink class="nav-link" href="@CalcHref("/test/reports/my")" Match="NavLinkMatch.All">
+                <span class="oi oi-person" aria-hidden="true"></span> Мои отчеты
             </NavLink>
         </li>
+        @if (roles.Contains("reports.admin"))
+        {
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="@CalcHref("/test/reports/employee")" Match="NavLinkMatch.All">
+                    <span class="oi oi-people" aria-hidden="true"></span> Отчеты сотрудников
+                </NavLink>
+            </li>
+        }
         <li class="nav-item px-3">
             <NavLink class="nav-link" href="@CalcHref("/test/report/create/")" Match="NavLinkMatch.Prefix">
                 <span class="oi oi-pencil" aria-hidden="true"></span> Написать отчет
@@ -32,9 +40,19 @@
 
     private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
 
+    [CascadingParameter]
+    protected List<string> roles { get; set; }
+
+    [CascadingParameter]
+    protected ConnectionStrings connectionStrings { get; set; }
+
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
+    }
+
+    protected override void OnAfterRender(bool isFirstRender)
+    {
     }
 
     private string CalcHref(string baseHref)
