@@ -8,7 +8,26 @@
 @inject Microsoft.Extensions.Logging.ILogger<Index> logger
 @inject NavigationManager navigationManager
 
-<h1>@(roles.Contains("reports.admin") ? "Отчеты сотрудников" : "Ваши отчеты")</h1>
+<h1>Отчеты сотрудников</h1>
+
+
+<p>Промежуток выборки отчетов</p>
+<div class="form-row" style="margin:10px">
+    <p>От</p>
+    <div class="col">
+        <input type="date" @bind-value="from" class="form-control">
+    </div>
+    <p>До</p>
+    <div class="col">
+        <input type="date" @bind-value="to" class="form-control">
+    </div>
+    <button class="btn btn-primary" @onclick="LoadInfo">Обновить</button>
+</div>
+
+@if(reportGroups.Count == 0)
+{
+    <p>Нет данных</p>
+}
 
 @foreach (var reportGroup in reportGroups)
 {
@@ -113,6 +132,9 @@
 
     List<ITLab.TestFront.Models.RenderModels.EployeeReportsGroup> reportGroups = new List<Models.RenderModels.EployeeReportsGroup>();
 
+    DateTime from = DateTime.Now - TimeSpan.FromDays(30);
+    DateTime to = DateTime.Now;
+
     [CascadingParameter]
     protected HttpClient httpClient { get; set; }
     [CascadingParameter]
@@ -139,6 +161,33 @@
         {
             return;
         }
+
+        await LoadInfo();
+    }
+
+    private async Task LoadInfo()
+    {
+        await LoadReports();
+        await LoadSalary();
+
+    }
+
+
+    private async Task LoadReports()
+    {
+        var allReports = await reportsApi.GetAllReports();
+        allReports = allReports.Where(r => r.Date >= from && r.Date <= to).ToList();
+        reportGroups = allReports
+            .GroupBy(r => r.ReportSender)
+            .Select(g => new Models.RenderModels.EployeeReportsGroup
+            {
+                EmployeeId = g.Key,
+                Reports = g.OrderByDescending(r => r.Date).Select(r => new ITLab.TestFront.Models.RenderModels.EployeeReportsGroup.ReportAndCompaceSalary { Report = r }).ToList()
+            })
+            .ToList();
+    }
+    private async Task LoadSalary()
+    {
         var allUsers = await usersApi.GetUsersInfo();
         foreach (var group in reportGroups)
         {
@@ -188,20 +237,6 @@
         StateHasChanged();
     }
 
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-        var allReports = await reportsApi.GetAllReports();
-
-        reportGroups = allReports
-            .GroupBy(r => r.ReportSender)
-            .Select(g => new Models.RenderModels.EployeeReportsGroup
-            {
-                EmployeeId = g.Key,
-                Reports = g.OrderByDescending(r => r.Date).Select(r => new ITLab.TestFront.Models.RenderModels.EployeeReportsGroup.ReportAndCompaceSalary { Report = r }).ToList()
-            })
-            .ToList();
-    }
 
     private async Task UpdateSalaryInfo(ITLab.TestFront.Models.RenderModels.EployeeReportsGroup.ReportAndCompaceSalary report)
     {

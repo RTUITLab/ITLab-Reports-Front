@@ -13,23 +13,16 @@
 
 <h1>Список доступных файлов</h1>
 
-<ul>
 
-    @foreach (var file in files)
-    {
-        <li>@file.Filename <button @onclick="async () => await Download(file.Filename, file.Id)">Скачать</button></li>
-        <img style="width:100px" src="@connectionStrings.DownloadFile(file.Id)" />
-        <p>@connectionStrings.DownloadFile(file.Id)</p>
-    }
-</ul>
+@foreach (var file in files)
+{
+    <a href="@connectionStrings.DownloadFile(file.Id)">@file.Filename</a>
+    <p>Загружено: @FormatDate(file.UploadDate)</p>
+    <img style="max-width:200px" src="@connectionStrings.DownloadFile(file.Id)" />
+    <hr />
+    <br />
+}
 
-<h1>Добавить файл</h1>
-
-<input type="file" @ref=inputElement />
-<button @onclick=ReadFile class="btn btn-primary">Read file</button>
-<button @onclick=ClearFile class="btn btn-primary">Clear</button>
-
-<textarea style="max-width: 100%;" cols="50" rows="20">@Output</textarea>
 @code {
 
     string error;
@@ -42,10 +35,9 @@
 
     [CascadingParameter]
     ConnectionStrings connectionStrings { get; set; }
-    ElementReference inputElement;
 
-    string Output { get; set; }
-
+    [CascadingParameter]
+    IFilesApi filesApi { get; set; }
 
 
     private async Task Download(string fileName, string id)
@@ -54,41 +46,12 @@
         await js.InvokeVoidAsync("saveAsFile", fileName, Convert.ToBase64String(bytes));
     }
 
-    public async Task ClearFile()
-    {
-        await fileReaderService.CreateReference(inputElement).ClearValue();
-    }
-    public async Task ReadFile()
-    {
-        Output = string.Empty;
-        this.StateHasChanged();
-        var nl = Environment.NewLine;
-        var files = (await fileReaderService.CreateReference(inputElement).EnumerateFilesAsync()).ToList();
-        Console.WriteLine(files.Count);
-        var fileInfo = await files[0].ReadFileInfoAsync();
-
-        MultipartFormDataContent form = new MultipartFormDataContent();
-        using var fileStream = await files[0].OpenReadAsync();
-        var array = new byte[fileInfo.Size];
-        Console.WriteLine($"array {array.Length}");
-        var readed = await fileStream.ReadAsync(array, 0, array.Length);
-        Output += readed.ToString();
-        form.Add(new ByteArrayContent(array, 0, array.Length), "uploadingForm", fileInfo.Name);
-        HttpResponseMessage response = await httpClient.PostAsync(connectionStrings.UploadFile, form);
-        var content = await response.Content.ReadAsStringAsync();
-        Output += response.StatusCode.ToString();
-        Output += content;
-    }
-
-
     protected override async Task OnInitializedAsync()
     {
-        var filesList = await httpClient.GetStringAsync(connectionStrings.FilesList);
-        logger.LogInformation(filesList);
-        files = JsonSerializer.Deserialize<List<FileObjectModel>>(filesList, new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        });
-
+        files = await filesApi.FilesList(connectionStrings.UserId);
+    }
+    private string FormatDate(DateTime dateTime)
+    {
+        return $"{dateTime.Year}.{dateTime.Month:D2}.{dateTime.Day:D2}"; ;
     }
 }

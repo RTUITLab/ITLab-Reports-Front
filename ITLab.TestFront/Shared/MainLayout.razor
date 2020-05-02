@@ -7,32 +7,34 @@
     }
 </style>
 
-<CascadingValue Value="reportsApi">
-    <CascadingValue Value="usersApi">
-        <CascadingValue Value="salaryApi">
-            <CascadingValue Value="connectionStrings">
-                <CascadingValue Value="httpClient">
-                    <CascadingValue Value="roles">
-                        <div class="sidebar">
-                            <NavMenu />
-                        </div>
-
-                        <div class="main">
-                            <div class="top-row px-4" style="color: red">
-                                Тестовый сайт, исключительно для проверки функционала и идей. Не кидать камнями за дизайн
+<CascadingValue Value="filesApi">
+    <CascadingValue Value="reportsApi">
+        <CascadingValue Value="usersApi">
+            <CascadingValue Value="salaryApi">
+                <CascadingValue Value="connectionStrings">
+                    <CascadingValue Value="httpClient">
+                        <CascadingValue Value="roles">
+                            <div class="sidebar">
+                                <NavMenu />
                             </div>
-                            @if (error)
-                            {
-                                <p>Неверные параметры адресной строки</p>
-                            }
-                            else
-                            {
-                                <div class="content px-4">
-                                    @Body
-                                </div>
-                            }
-                        </div>
 
+                            <div class="main">
+                                <div class="top-row px-4" style="color: red">
+                                    Тестовый сайт, исключительно для проверки функционала и идей. Не кидать камнями за дизайн
+                                </div>
+                                @if (error)
+                                {
+                                    <p>Неверные параметры адресной строки</p>
+                                }
+                                else
+                                {
+                                    <div class="content px-4">
+                                        @Body
+                                    </div>
+                                }
+                            </div>
+
+                        </CascadingValue>
                     </CascadingValue>
                 </CascadingValue>
             </CascadingValue>
@@ -49,6 +51,7 @@
     IReportsApi reportsApi;
     IUsersApi usersApi;
     ISalaryApi salaryApi;
+    IFilesApi filesApi;
 
     protected override void OnInitialized()
     {
@@ -84,6 +87,8 @@
         reportsApi = Refit.RestService.For<IReportsApi>(baseAddress, refitSettings);
         usersApi = Refit.RestService.For<IUsersApi>(baseAddress, refitSettings);
         salaryApi = Refit.RestService.For<ISalaryApi>(salaryBaseAddress, refitSettings);
+        filesApi = Refit.RestService.For<IFilesApi>(filesBaseAddress, refitSettings);
+
 
         connectionStrings.BaseAddress = baseAddress;
         connectionStrings.FileServerBase = filesBaseAddress;
