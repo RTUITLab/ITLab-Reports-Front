@@ -13,7 +13,7 @@ namespace ITLab.TestFront.RemoteApi
         [Get("/api/reports?sorted_by=date")]
         Task<List<CompactReport>> GetAllReports();
 
-        [Get("/api/reports/{userId}")]
+        [Get("/api/employee/{userId}")]
         Task<List<CompactReport>> GetReportsForUser(string userId, string dateBegin, string dateEnd);
 
         [Post("/api/reports")]

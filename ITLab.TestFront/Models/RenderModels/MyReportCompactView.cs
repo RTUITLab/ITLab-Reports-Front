@@ -9,5 +9,6 @@ namespace ITLab.TestFront.Models.RenderModels
     {
         public CompactReport ReportInfo { get; set; }
         public LazyValue<ReportSalaryCompact> SalaryInfo { get; set; }
+        public LazyValue<string> SalaryApproverName { get; set; }
     }
 }

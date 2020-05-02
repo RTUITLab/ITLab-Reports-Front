@@ -14,7 +14,7 @@
 @foreach (var report in reports)
 {
     <div class="row">
-        <div class="col-10">
+        <div class="col-9">
             <div class="card">
                 <div class="card-header">@($"{report.ReportInfo.Date.Year}.{report.ReportInfo.Date.Month.ToString("D2")}.{report.ReportInfo.Date.Day.ToString("D2")}")</div>
                 <div class="card-body">
@@ -25,7 +25,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-2">
+        <div class="col-3">
             @switch (report.SalaryInfo.Status)
             {
                 case Models.RenderModels.LazyValueStatus.Loading:
@@ -39,8 +39,9 @@
                     break;
                 case Models.RenderModels.LazyValueStatus.Loaded:
                     <div class="card">
-                        <div class="card-header">@report.SalaryInfo.Value.Count</div>
+                        <div class="card-header">@report.SalaryInfo.Value.PrettyDate: @report.SalaryInfo.Value.Count ₽</div>
                         <div class="card-body">@report.SalaryInfo.Value.Description</div>
+                        <div class="card-footer">Назначил: @report.SalaryApproverName.Value</div>
                     </div>
                     break;
                 default:
@@ -64,6 +65,8 @@
     IReportsApi reportsApi { get; set; }
     [CascadingParameter]
     ISalaryApi salaryApi { get; set; }
+    [CascadingParameter]
+    IUsersApi usersApi { get; set; }
 
     JsonSerializerOptions jsonOptions = new JsonSerializerOptions
     {
@@ -72,34 +75,39 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        if (!firstRender)
         {
-            try
-            {
-
-                var salaryInfo = await salaryApi.GetUsersReportsSalary(connectionStrings.UserId);
-
-                foreach (var item in reports)
-                {
-                    var targetSalaryInfo = salaryInfo.FirstOrDefault(si => si.ReportId == item.ReportInfo.Id);
-                    if (targetSalaryInfo == null)
-                    {
-                        item.SalaryInfo = item.SalaryInfo.NoData();
-                        continue;
-                    }
-                    item.SalaryInfo = item.SalaryInfo.Loaded(targetSalaryInfo);
-                }
-            }
-            catch (Exception)
-            {
-                reports.ForEach(r =>
-                {
-                    r.SalaryInfo = r.SalaryInfo.Error();
-                });
-            }
-
-            StateHasChanged();
+            return;
         }
+        try
+        {
+
+            var salaryInfo = await salaryApi.GetUsersReportsSalary(connectionStrings.UserId);
+
+            foreach (var item in reports)
+            {
+                var targetSalaryInfo = salaryInfo.FirstOrDefault(si => si.ReportId == item.ReportInfo.Id);
+                if (targetSalaryInfo == null)
+                {
+                    item.SalaryInfo = item.SalaryInfo.NoData();
+                    continue;
+                }
+                item.SalaryInfo = item.SalaryInfo.Loaded(targetSalaryInfo);
+
+                var user = await usersApi.GetUserInfo(targetSalaryInfo.ApproverId);
+                item.SalaryApproverName = item.SalaryApproverName.Loaded($"{user.LastName} {user.FirstName[0]}. {user.MiddleName?[0] ?? '.'}.");
+            }
+        }
+        catch (Exception)
+        {
+            reports.ForEach(r =>
+            {
+                r.SalaryInfo = r.SalaryInfo.Error();
+            });
+        }
+
+        StateHasChanged();
+
     }
 
     protected override async Task OnInitializedAsync()
@@ -109,7 +117,7 @@
         var reportsInfo = await reportsApi.GetReportsForUser(connectionStrings.UserId,
             DateTime.MinValue.ToString("dd.MM.yyyy"),
             DateTime.MaxValue.ToString("dd.MM.yyyy"));
-        reports.Reverse();
+        reportsInfo.Reverse();
 
         reports = reportsInfo.Select(ri => new Models.RenderModels.MyReportCompactView
         {
