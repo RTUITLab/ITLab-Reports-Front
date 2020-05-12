@@ -11,7 +11,7 @@ namespace ITLab.TestFront.RemoteApi
     interface ISalaryApi
     {
         [Get("/api/salary/v1/report/user/{userId}")]
-        Task<List<ReportSalaryCompact>> GetUsersReportsSalary(string userId);
+        Task<List<ReportSalaryCompact>> GetUsersReportsSalary(Guid userId);
 
         [Put("/api/salary/v1/report/{reportId}")]
         Task<ReportSalaryCompact> UpdateUsersReportsSalary(string reportId, [Body]UpdateSalaryRequest request);

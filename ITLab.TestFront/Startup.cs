@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Blazor.FileReader;
+using ITLab.TestFront.Models;
+using ITLab.TestFront.RemoteApi;
+using ITLab.TestFront.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
@@ -31,6 +34,17 @@ namespace ITLab.TestFront
                 o.MaximumReceiveMessageSize = 30 * 1024 * 1024; // 30 MB
             });
             services.AddFileReaderService();
+            services.AddScoped<UserInfoPool>();
+            services.AddScoped<ConnectionStrings>();
+            services.AddTransient<IUsersApi>(s =>
+            {
+                var strings = s.GetService<ConnectionStrings>();
+                var refitSettings = new Refit.RefitSettings
+                {
+                    AuthorizationHeaderValueGetter = () => Task.FromResult(strings.Token)
+                };
+                return Refit.RestService.For<IUsersApi>(strings.BaseAddress, refitSettings);
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

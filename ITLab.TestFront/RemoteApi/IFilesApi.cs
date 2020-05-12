@@ -11,6 +11,6 @@ namespace ITLab.TestFront.RemoteApi
     public interface IFilesApi
     {
         [Get("/files")]
-        Task<List<FileObjectModel>> FilesList(string user);
+        Task<List<FileObjectModel>> FilesList(Guid user);
     }
 }

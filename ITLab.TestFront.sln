@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30001.183
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ITLab.TestFront", "ITLab.TestFront\ITLab.TestFront.csproj", "{45622061-9D26-438B-9025-58EAB0B93461}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ITLab.TestFront", "ITLab.TestFront\ITLab.TestFront.csproj", "{45622061-9D26-438B-9025-58EAB0B93461}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

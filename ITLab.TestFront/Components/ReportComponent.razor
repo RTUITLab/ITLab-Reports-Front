@@ -1,0 +1,41 @@
+﻿<div class="card">
+    <div class="card-header">
+        <div class="row">
+            <div class="col">@Report.PrettyDate</div>
+            @if (RenderReporter)
+            {
+                <div class="col">
+                    Автор: <UserNameComponent UserId="Report.Assignees.Reporter" />
+                </div>
+            }
+            @if (RenderImplementer)
+            {
+                <div class="col">
+                    Про: <UserNameComponent UserId="Report.Assignees.Implementer" />
+                </div>
+            }
+        </div>
+    </div>
+    <div class="card-body">
+        <p style="white-space: pre-line" class="card-text">
+            @((MarkupString)Markdig.Markdown.ToHtml(Report.Text))
+        </p>
+    </div>
+    @if (ChildContent != null)
+    {
+        <div class="card-footer">
+            @ChildContent
+        </div>
+    }
+</div>
+@code {
+    [Parameter]
+    public CompactReport Report { get; set; }
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public bool RenderReporter { get; set; } = true;
+    [Parameter]
+    public bool RenderImplementer { get; set; } = false;
+}

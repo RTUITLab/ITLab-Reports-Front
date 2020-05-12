@@ -2,6 +2,7 @@
 @using Microsoft.Extensions.Logging
 @using Blazor.FileReader
 @inject IJSRuntime js
+@inject IUsersApi usersApi
 @inject Blazor.FileReader.IFileReaderService fileReaderService
 
 @using System.Net.Http
@@ -41,43 +42,64 @@
         @error
     </div>
 }
-<div class="row">
-    <div class="col-6">
-        <EditForm Model="createReportRequest" OnValidSubmit="SendCreateReportRequest">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
-            <div class="form-group">
-                <label for="exampleFormControlTextarea1">Опишите, что вы делали за последнее время, что вы считаете важным при оценке вашей работы</label>
-                <label>Вы можете прикрепить изображения или документы. Формат описания поддерживает <a href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet">формат Markdown</a></label>
-                @switch (currentFileStatus)
-                {
-                    case FileAddingStatus.WaitForFile:
 
-                        <div>
-                            <input type="file" @ref=dropTargetInput />
-                            <button type="button" @onclick="OnLoadDocument">Добавить документ/изображение</button>
-                        </div>
-                        break;
-                    case FileAddingStatus.Uploading:
-                        <p>Uploading @currentFileName</p>
-                        break;
-                    default:
-                        <p>incorrect state</p>
-                        break;
-                }
-                <InputTextArea class="form-control" id="exampleFormControlTextarea1" rows="15" @bind-Value="createReportRequest.Text" />
+@if (availableUsers.Count == 0)
+{
+    <p>Загрузка списка пользователей</p>
+}
+else
+{
+
+
+    <div class="row">
+        <div class="col-6">
+            <EditForm class="form-group" Model="createReportRequest" OnValidSubmit="SendCreateReportRequest">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <div class="form-group">
+                    <p>Опишите, что вы делали за последнее время, что вы считаете важным при оценке вашей работы</p>
+                    <p>Вы можете прикрепить изображения или документы. Формат описания поддерживает <a href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet">формат Markdown</a></p>
+                    @switch (currentFileStatus)
+                    {
+                        case FileAddingStatus.WaitForFile:
+
+                            <div>
+                                <input type="file" @ref=dropTargetInput />
+                                <button type="button" @onclick="OnLoadDocument">Добавить документ/изображение</button>
+                            </div>
+                            break;
+                        case FileAddingStatus.Uploading:
+                            <p>Uploading @currentFileName</p>
+                            break;
+                        default:
+                            <p>incorrect state</p>
+                            break;
+                    }
+                    <label>
+                        Про кого пишется отчет
+                        <InputSelect class="form-control" @bind-Value="implementerUserId">
+                            @foreach (var user in availableUsers)
+                                {
+                                <option value="@user.Id.ToString()">@user.ShortName</option>
+                                }
+                        </InputSelect>
+                    </label>
+                    <p>Отчет на языке markdown:</p>
+                    <InputTextArea class="form-control" id="exampleFormControlTextarea1" rows="15" @bind-Value="createReportRequest.Text" />
+                </div>
+                <button type="submit" class="btn btn-primary mb-2">Отправить</button>
+            </EditForm>
+        </div>
+        <div class="col-6">
+            <p>Preview</p>
+            <button @onclick="Update">Обновить</button>
+            <div style="border: dotted">
+                @((MarkupString)Markdig.Markdown.ToHtml(createReportRequest.Text ?? ""))
             </div>
-            <button type="submit" class="btn btn-primary mb-2">Отправить</button>
-        </EditForm>
-    </div>
-    <div class="col-6">
-        <p>Preview</p>
-        <button @onclick="Update">Update</button>
-        <div style="border: dotted">
-            @((MarkupString)Markdig.Markdown.ToHtml(createReportRequest.Text ?? ""))
         </div>
     </div>
-</div>
+}
+
 @code {
 
     enum FileAddingStatus
@@ -94,6 +116,8 @@
 
     const string dropTargetClass = "droptarget";
 
+    private List<UserModel> availableUsers = new List<UserModel>();
+    private string implementerUserId;
 
     private List<string> _ipdropClasses = new List<string>() { dropTargetClass };
 
@@ -124,11 +148,25 @@
     [CascadingParameter]
     IReportsApi reportsApi { get; set; }
 
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        if (!firstRender)
+        {
+            return;
+        }
+        implementerUserId = connectionStrings.UserId.ToString();
+        var users  = await usersApi.GetUsersInfo();
+        availableUsers = users.OrderBy(u => u.LastName).ThenBy(u => u.FirstName).ToList();
+        StateHasChanged();
+    }
+
     private async Task SendCreateReportRequest()
     {
         try
         {
-            await reportsApi.CreateReport(createReportRequest);
+            await reportsApi.CreateReport(createReportRequest, Guid.Parse(implementerUserId));
         }
         catch (Exception ex)
         {
@@ -218,4 +256,5 @@
         var queryString = baseHref + uri.Query;
         return queryString;
     }
+
 }

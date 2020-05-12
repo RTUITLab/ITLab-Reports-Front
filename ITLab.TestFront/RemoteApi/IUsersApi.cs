@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace ITLab.TestFront.RemoteApi
 {
     [Headers("Authorization: Bearer")]
-    interface IUsersApi
+    public interface IUsersApi
     {
         [Get("/api/user?count=1000")]
         Task<List<UserModel>> GetUsersInfo();

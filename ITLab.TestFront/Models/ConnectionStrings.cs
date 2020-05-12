@@ -7,9 +7,10 @@ namespace ITLab.TestFront.Models
 {
     public class ConnectionStrings
     {
+        public string Token { get; set; }
         public string BaseAddress { get; set; }
         public string FileServerBase { get; set; }
-        public string UserId { get; set; }
+        public Guid UserId { get; set; }
         public Uri FilesList
         {
             get

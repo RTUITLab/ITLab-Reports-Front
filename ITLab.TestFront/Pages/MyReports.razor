@@ -9,21 +9,16 @@
 @inject Microsoft.Extensions.Logging.ILogger<Index> logger
 @inject NavigationManager navigationManager
 
-<h1>Мои отчеты</h1>
-
-@foreach (var report in reports)
+<h1>@(currentMode == "about_me" ? "Отчеты обо мне" : "Написанные мной отчеты") </h1>
+<button class="btn btn-primary" @onclick="ChangeMode">Переключить</button>
+@foreach (var report in reports.Where(Selection(currentMode)))
 {
-    <div class="row">
+    <div class="row" style="margin-bottom:5px">
         <div class="col-9">
-            <div class="card">
-                <div class="card-header">@($"{report.ReportInfo.Date.Year}.{report.ReportInfo.Date.Month.ToString("D2")}.{report.ReportInfo.Date.Day.ToString("D2")}")</div>
-                <div class="card-body">
-                    <p style="white-space: pre-line" class="card-text">
-                        @((MarkupString)Markdig.Markdown.ToHtml(report.ReportInfo.Text))
-                    </p>
-                    <button class="btn btn-danger" @onclick="@(async () => await Delete(report.ReportInfo.Id))">Удалить</button>
-                </div>
-            </div>
+            <ReportComponent Report="report.ReportInfo" RenderReporter="@(currentMode == "about_me")" RenderImplementer="@(currentMode != "about_me")">
+
+                <button class="btn btn-danger" @onclick="@(async () => await Delete(report.ReportInfo.Id))">Удалить</button>
+            </ReportComponent>
         </div>
         <div class="col-3">
             @switch (report.SalaryInfo.Status)
@@ -35,7 +30,14 @@
                     <p>Невозможно загрузить данные</p>
                     break;
                 case Models.RenderModels.LazyValueStatus.NoData:
-                    <p>Оплата не назначена</p>
+                    if (currentMode == "about_me")
+                    {
+                        <p>Оплата не назначена</p>
+                    }
+                    else
+                    {
+                        <p>Нет доступа к информации о оплате</p>
+                    }
                     break;
                 case Models.RenderModels.LazyValueStatus.Loaded:
                     <div class="card">
@@ -52,6 +54,8 @@
     </div>
 }
 @code {
+
+    private string currentMode = "about_me";
 
     List<ITLab.TestFront.Models.RenderModels.MyReportCompactView> reports = new List<Models.RenderModels.MyReportCompactView>();
 
@@ -72,6 +76,31 @@
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
+
+    private void ChangeMode()
+    {
+        if (currentMode == "about_me")
+        {
+            currentMode = "from_me_about_others";
+        }
+        else
+        {
+            currentMode = "about_me";
+        }
+    }
+
+    private Func<ITLab.TestFront.Models.RenderModels.MyReportCompactView, bool> Selection(string mode)
+    {
+        switch (mode)
+        {
+            case "about_me":
+                return (r) => r.ReportInfo.Assignees.Implementer == connectionStrings.UserId;
+            case "from_me_about_others":
+                return (r) => r.ReportInfo.Assignees.Reporter == connectionStrings.UserId && r.ReportInfo.Assignees.Implementer != connectionStrings.UserId;
+            default:
+                return ((r) => true);
+        }
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -114,12 +143,14 @@
     {
         await base.OnInitializedAsync();
 
-        var reportsInfo = await reportsApi.GetReportsForUser(connectionStrings.UserId,
+        var list = await reportsApi.GetReportsForUser(connectionStrings.UserId,
             DateTime.MinValue.ToString("dd.MM.yyyy"),
             DateTime.MaxValue.ToString("dd.MM.yyyy"));
-        reportsInfo.Reverse();
 
-        reports = reportsInfo.Select(ri => new Models.RenderModels.MyReportCompactView
+
+        list.Reverse();
+
+        reports = list.Select(ri => new Models.RenderModels.MyReportCompactView
         {
             ReportInfo = ri
         }).ToList();

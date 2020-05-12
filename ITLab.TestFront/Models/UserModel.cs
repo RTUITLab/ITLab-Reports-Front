@@ -12,5 +12,7 @@ namespace ITLab.TestFront.Models
         public string LastName { get; set; }
         public string MiddleName { get; set; }
         public string Email { get; set; }
+
+        public string ShortName => $"{LastName} {FirstName[0]}.{(string.IsNullOrEmpty(MiddleName) ? ' ' : MiddleName[0])}{(string.IsNullOrEmpty(MiddleName) ? "" : ".")}";
     }
 }

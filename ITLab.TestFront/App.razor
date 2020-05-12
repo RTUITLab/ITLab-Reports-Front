@@ -1,7 +1,16 @@
 ﻿
 <Router AppAssembly="@typeof(Program).Assembly">
     <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        @try
+        {
+            <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+
+        }
+        catch (Exception)
+        {
+            <p>Error</p>
+            throw;
+        }
     </Found>
     <NotFound>
         <LayoutView Layout="@typeof(MainLayout)">

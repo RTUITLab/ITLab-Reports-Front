@@ -39,16 +39,7 @@
             {
                 <div class="row">
                     <div class="col-8">
-                        <div class="card">
-                            <div class="card-header">
-                                @report.Date
-                            </div>
-                            <div class="card-body">
-                                <p style="white-space: pre-line" class="card-text">
-                                    @((MarkupString)Markdig.Markdown.ToHtml(report.Report.Text))
-                                </p>
-                            </div>
-                        </div>
+                        <ReportComponent Report="report.Report"/>
                     </div>
                     <div class="col-4">
                         @switch (report.Salary.Status)
@@ -178,7 +169,7 @@
         var allReports = await reportsApi.GetAllReports();
         allReports = allReports.Where(r => r.Date >= from && r.Date <= to).ToList();
         reportGroups = allReports
-            .GroupBy(r => r.ReportSender)
+            .GroupBy(r => r.Assignees.Implementer)
             .Select(g => new Models.RenderModels.EployeeReportsGroup
             {
                 EmployeeId = g.Key,
@@ -203,7 +194,7 @@
         {
             try
             {
-                var reportSalary = await salaryApi.GetUsersReportsSalary(group.EmployeeId.ToString());
+                var reportSalary = await salaryApi.GetUsersReportsSalary(group.EmployeeId);
 
                 foreach (var report in group.Reports)
                 {

@@ -13,11 +13,11 @@ namespace ITLab.TestFront.RemoteApi
         [Get("/api/reports?sorted_by=date")]
         Task<List<CompactReport>> GetAllReports();
 
-        [Get("/api/employee/{userId}")]
-        Task<List<CompactReport>> GetReportsForUser(string userId, string dateBegin, string dateEnd);
+        [Get("/api/reports/employee/{userId}")]
+        Task<List<CompactReport>> GetReportsForUser(Guid userId, string dateBegin, string dateEnd);
 
         [Post("/api/reports")]
-        Task CreateReport([Body] CreateReportRequest reportRequest);
+        Task CreateReport([Body] CreateReportRequest reportRequest, Guid implementer);
 
         [Delete("/api/reports/{id}")]
         Task DeleteReport(string id);

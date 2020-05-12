@@ -1,0 +1,25 @@
+﻿@inject ITLab.TestFront.Services.UserInfoPool userInfoPool
+
+@Content
+
+@code {
+    [Parameter]
+    public Guid UserId { get; set; }
+
+    public string Content => UserModel.Status switch
+    {
+        Models.RenderModels.LazyValueStatus.Loading => "Загрузка ФИО...",
+        Models.RenderModels.LazyValueStatus.Error => "Ошибка загрузки ФИО",
+        Models.RenderModels.LazyValueStatus.NoData => "Данных нет",
+        Models.RenderModels.LazyValueStatus.Loaded => UserModel.Value.ShortName,
+        _ => "Критическая ошибка"
+    };
+
+    private ITLab.TestFront.Models.RenderModels.LazyValue<UserModel> UserModel;
+
+    protected async override Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+        UserModel = UserModel.Loaded(await userInfoPool.GetUserInfo(UserId));
+    }
+}

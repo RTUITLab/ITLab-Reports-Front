@@ -1,59 +1,65 @@
 ﻿@inherits LayoutComponentBase
 @inject NavigationManager navigationManager
+@inject ConnectionStrings connectionStrings
 
 <style>
     img {
         max-width: 800px;
     }
 </style>
-
-<CascadingValue Value="filesApi">
-    <CascadingValue Value="reportsApi">
-        <CascadingValue Value="usersApi">
-            <CascadingValue Value="salaryApi">
-                <CascadingValue Value="connectionStrings">
-                    <CascadingValue Value="httpClient">
-                        <CascadingValue Value="roles">
-                            <div class="sidebar">
-                                <NavMenu />
-                            </div>
-
-                            <div class="main">
-                                <div class="top-row px-4" style="color: red">
-                                    Тестовый сайт, исключительно для проверки функционала и идей. Не кидать камнями за дизайн
+@if (loaded)
+{
+    <CascadingValue Value="filesApi">
+        <CascadingValue Value="reportsApi">
+            <CascadingValue Value="usersApi">
+                <CascadingValue Value="salaryApi">
+                    <CascadingValue Value="connectionStrings">
+                        <CascadingValue Value="httpClient">
+                            <CascadingValue Value="roles">
+                                <div class="sidebar">
+                                    <NavMenu />
                                 </div>
-                                @if (error)
-                                {
-                                    <p>Неверные параметры адресной строки</p>
-                                }
-                                else
-                                {
-                                    <div class="content px-4">
-                                        @Body
-                                    </div>
-                                }
-                            </div>
 
+                                <div class="main">
+                                    <div class="top-row px-4" style="color: red">
+                                        Тестовый сайт, исключительно для проверки функционала и идей. Не кидать камнями за дизайн
+                                    </div>
+                                    @if (error)
+                                    {
+                                        <p>Неверные параметры адресной строки</p>
+                                    }
+                                    else
+                                    {
+                                        <div class="content px-4">
+                                            @Body
+                                        </div>
+                                    }
+                                </div>
+
+                            </CascadingValue>
                         </CascadingValue>
                     </CascadingValue>
                 </CascadingValue>
             </CascadingValue>
         </CascadingValue>
     </CascadingValue>
-</CascadingValue>
+}
+else
+{
+    <p>Загрузка</p>
+}
 @code {
-
+    bool loaded;
     bool error;
     HttpClient httpClient = new HttpClient();
     List<string> roles = new List<string>();
-    ConnectionStrings connectionStrings = new ConnectionStrings();
 
     IReportsApi reportsApi;
     IUsersApi usersApi;
     ISalaryApi salaryApi;
     IFilesApi filesApi;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         base.OnInitialized();
 
@@ -90,9 +96,9 @@
         filesApi = Refit.RestService.For<IFilesApi>(filesBaseAddress, refitSettings);
 
 
+        connectionStrings.Token = token;
         connectionStrings.BaseAddress = baseAddress;
         connectionStrings.FileServerBase = filesBaseAddress;
-
 
         httpClient = new HttpClient();
         httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
@@ -102,7 +108,7 @@
             raw += '=';
         }
         var doc = JsonDocument.Parse(Convert.FromBase64String(raw));
-        connectionStrings.UserId = doc.RootElement.GetProperty("sub").GetString();
+        connectionStrings.UserId = Guid.Parse(doc.RootElement.GetProperty("sub").GetString());
         if (doc.RootElement.TryGetProperty("itlab", out var roleClaim))
         {
             if (roleClaim.ValueKind == JsonValueKind.String)
@@ -117,6 +123,7 @@
                 }
             }
         }
+        loaded = true;
     }
 
 }
