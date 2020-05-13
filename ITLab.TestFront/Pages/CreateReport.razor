@@ -176,6 +176,7 @@ else
         try
         {
             await reportsApi.CreateReport(createReportRequest, Guid.Parse(implementerUserId));
+            await js.InvokeVoidAsync("stopSavingReportText");
             await localStorage.RemoveItemAsync("create_report.text");
             navigationManager.NavigateTo(CalcHref("/test/"));
         }
