@@ -1,4 +1,7 @@
-﻿<div class="card">
+﻿@inject Markdig.MarkdownPipeline markdownPipeline
+
+
+<div class="card">
     <div class="card-header">
         <div class="row">
             <div class="col">@Report.PrettyDate</div>
@@ -18,7 +21,7 @@
     </div>
     <div class="card-body">
         <p style="white-space: pre-line" class="card-text">
-            @((MarkupString)Markdig.Markdown.ToHtml(Report.Text))
+            @((MarkupString)Markdig.Markdown.ToHtml(Report.Text, markdownPipeline))
         </p>
     </div>
     @if (ChildContent != null)

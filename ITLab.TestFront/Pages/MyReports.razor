@@ -9,7 +9,7 @@
 @inject Microsoft.Extensions.Logging.ILogger<Index> logger
 @inject NavigationManager navigationManager
 
-<h1>@(currentMode == "about_me" ? "Отчеты обо мне" : "Написанные мной отчеты") </h1>
+<h1>@(currentMode == "about_me" ? "Отчеты обо мне" : "Написанные мной отчеты про других") </h1>
 <button class="btn btn-primary" @onclick="ChangeMode">Переключить</button>
 @foreach (var report in reports.Where(Selection(currentMode)))
 {

@@ -1,9 +1,13 @@
 ﻿@page "/report/create"
+@implements IDisposable
+
 @using Microsoft.Extensions.Logging
 @using Blazor.FileReader
 @inject IJSRuntime js
 @inject IUsersApi usersApi
 @inject Blazor.FileReader.IFileReaderService fileReaderService
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject Markdig.MarkdownPipeline markdownPipeline
 
 @using System.Net.Http
 
@@ -85,7 +89,7 @@ else
                         </InputSelect>
                     </label>
                     <p>Отчет на языке markdown:</p>
-                    <InputTextArea class="form-control" id="exampleFormControlTextarea1" rows="15" @bind-Value="createReportRequest.Text" />
+                    <InputTextArea class="form-control" id="exampleFormControlTextarea1" rows="15" Value="@createReportRequest.Text" ValueExpression="() => createReportRequest.Text" ValueChanged="SaveText" />
                 </div>
                 <button type="submit" class="btn btn-primary mb-2">Отправить</button>
             </EditForm>
@@ -94,7 +98,7 @@ else
             <p>Preview</p>
             <button @onclick="Update">Обновить</button>
             <div style="border: dotted">
-                @((MarkupString)Markdig.Markdown.ToHtml(createReportRequest.Text ?? ""))
+                @((MarkupString)Markdig.Markdown.ToHtml(createReportRequest.Text ?? "", markdownPipeline))
             </div>
         </div>
     </div>
@@ -124,7 +128,11 @@ else
     string IpDropClass => string.Join(" ", _ipdropClasses);
 
     string currentFileName;
-
+    private async Task SaveText(string text)
+    {
+        createReportRequest.Text = text;
+        await localStorage.SetItemAsync("create_report.text", text);
+    }
 
     public void OnIpDragLeave(EventArgs e)
     {
@@ -136,7 +144,6 @@ else
     }
 
     string error;
-    string markdownEnd = "";
 
     CreateReportRequest createReportRequest = new CreateReportRequest();
     [CascadingParameter]
@@ -156,8 +163,10 @@ else
         {
             return;
         }
+        createReportRequest.Text = await localStorage.GetItemAsync<string>("create_report.text") ?? "";
+        await js.InvokeVoidAsync("startSavingReportText");
         implementerUserId = connectionStrings.UserId.ToString();
-        var users  = await usersApi.GetUsersInfo();
+        var users = await usersApi.GetUsersInfo();
         availableUsers = users.OrderBy(u => u.LastName).ThenBy(u => u.FirstName).ToList();
         StateHasChanged();
     }
@@ -167,12 +176,13 @@ else
         try
         {
             await reportsApi.CreateReport(createReportRequest, Guid.Parse(implementerUserId));
+            await localStorage.RemoveItemAsync("create_report.text");
+            navigationManager.NavigateTo(CalcHref("/test/"));
         }
         catch (Exception ex)
         {
-            error = ex.Message;
+            error = $"Попробуйте вернуться на основной сайт и отправить отчет снова | {ex.Message}";
         }
-        navigationManager.NavigateTo(CalcHref("/test/"));
     }
 
     public async Task OnLoadDocument(EventArgs e)
@@ -246,7 +256,7 @@ else
 
     private void Update()
     {
-        markdownEnd = Markdig.Markdown.ToHtml(createReportRequest.Text);
+        StateHasChanged();
     }
 
     private string CalcHref(string baseHref)
@@ -255,6 +265,10 @@ else
 
         var queryString = baseHref + uri.Query;
         return queryString;
+    }
+    void IDisposable.Dispose()
+    {
+        js.InvokeVoidAsync("stopSavingReportText");
     }
 
 }

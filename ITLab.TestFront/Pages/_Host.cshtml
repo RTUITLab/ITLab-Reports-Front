@@ -56,6 +56,16 @@
         function getNowTime() {
             return Date.now();
         }
+        let timer = null;
+        function startSavingReportText() {
+            timer = setInterval(() => {
+                var text = document.getElementById("exampleFormControlTextarea1").value;
+                localStorage.setItem("create_report.text", text);
+            }, 100)
+        }
+        function stopSavingReportText() {
+            clearInterval(timer);
+        }
     </script>
 </body>
 </html>

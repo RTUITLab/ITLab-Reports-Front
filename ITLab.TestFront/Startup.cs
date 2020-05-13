@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Blazor.FileReader;
+using Blazored.LocalStorage;
 using ITLab.TestFront.Models;
 using ITLab.TestFront.RemoteApi;
 using ITLab.TestFront.Services;
+using Markdig;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
@@ -31,8 +33,13 @@ namespace ITLab.TestFront
             services.AddRazorPages();
             services.AddServerSideBlazor().AddHubOptions(o =>
             {
-                o.MaximumReceiveMessageSize = 30 * 1024 * 1024; // 30 MB
+                o.MaximumReceiveMessageSize = 40 * 1024 * 1024; // 40 MB
             });
+            services.AddBlazoredLocalStorage();
+            var markdownPipeline = new MarkdownPipelineBuilder()
+                .DisableHtml()
+                .Build();
+            services.AddSingleton(markdownPipeline);
             services.AddFileReaderService();
             services.AddScoped<UserInfoPool>();
             services.AddScoped<ConnectionStrings>();
