@@ -24,7 +24,7 @@
     <button class="btn btn-primary" @onclick="LoadInfo">Обновить</button>
 </div>
 
-@if(reportGroups.Count == 0)
+@if (reportGroups.Count == 0)
 {
     <p>Нет данных</p>
 }
@@ -32,14 +32,19 @@
 @foreach (var reportGroup in reportGroups)
 {
     <div class="card border-dark mb-3">
-        <div class="card-header">@reportGroup.ReportSenderName</div>
+
+        <div class="card-header row">
+            <div class="col-6">@reportGroup.ReportSenderName</div>
+            <div  class="text-right col-6">Сумма: @reportGroup.Reports.Select(r => r.Salary).Where(s => s.Status == Models.RenderModels.LazyValueStatus.Loaded).Select(s => s.Value.Count).Sum()</div>
+        </div>
+
         <div class="card-body">
 
             @foreach (var report in reportGroup.Reports)
             {
-                <div class="row">
+                <div class="row" style="margin-bottom: 10px">
                     <div class="col-8">
-                        <ReportComponent Report="report.Report"/>
+                        <ReportComponent Report="report.Report" />
                     </div>
                     <div class="col-4">
                         @switch (report.Salary.Status)
