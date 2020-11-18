@@ -1,5 +1,7 @@
-﻿@inject ITLab.TestFront.Services.UserInfoPool userInfoPool
-
+﻿@using Microsoft.Extensions.Logging
+ 
+@inject ITLab.TestFront.Services.UserInfoPool userInfoPool
+@inject Microsoft.Extensions.Logging.ILogger<UserNameComponent> logger
 @Content
 
 @code {
@@ -20,6 +22,15 @@
     protected async override Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
-        UserModel = UserModel.Loaded(await userInfoPool.GetUserInfo(UserId));
+        try
+        {
+            var userInfo = await userInfoPool.GetUserInfo(UserId);
+            UserModel = UserModel.Loaded(userInfo);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, $"Can't get user info for {UserId}");
+            UserModel = UserModel.Error(ex.Message);
+        }
     }
 }

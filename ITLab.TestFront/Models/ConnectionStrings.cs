@@ -15,10 +15,8 @@ namespace ITLab.TestFront.Models
         {
             get
             {
-                var builder = new UriBuilder(FileServerBase)
-                {
-                    Path = "/files"
-                };
+                var builder = new UriBuilder(FileServerBase);
+                builder.Path += "/files";
                 return builder.Uri;
             }
         }
@@ -27,19 +25,15 @@ namespace ITLab.TestFront.Models
         {
             get
             {
-                var builder = new UriBuilder(FileServerBase)
-                {
-                    Path = "/files/upload"
-                };
+                var builder = new UriBuilder(FileServerBase);
+                builder.Path += "/files/upload";
                 return builder.Uri;
             }
         }
         public Uri DownloadFile(string fileId)
         {
-            var builder = new UriBuilder(FileServerBase)
-            {
-                Path = $"/download/{fileId}"
-            };
+            var builder = new UriBuilder(FileServerBase);
+            builder.Path += $"/download/{fileId}";
             return builder.Uri;
         }
     }

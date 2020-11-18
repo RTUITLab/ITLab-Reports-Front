@@ -1,7 +1,8 @@
 ﻿@inherits LayoutComponentBase
+@using Microsoft.Extensions.Configuration
 @inject NavigationManager navigationManager
 @inject ConnectionStrings connectionStrings
-
+@inject IConfiguration Configuration
 <style>
     img {
         max-width: 800px;
@@ -90,10 +91,14 @@ else
             AuthorizationHeaderValueGetter = () => Task.FromResult(token)
         };
 
-        reportsApi = Refit.RestService.For<IReportsApi>(baseAddress, refitSettings);
-        usersApi = Refit.RestService.For<IUsersApi>(baseAddress, refitSettings);
-        salaryApi = Refit.RestService.For<ISalaryApi>(salaryBaseAddress, refitSettings);
-        filesApi = Refit.RestService.For<IFilesApi>(filesBaseAddress, refitSettings);
+        Console.WriteLine(Configuration.GetConnectionString("ReportsApiBase"));
+        Console.WriteLine(Configuration.GetConnectionString("UsersApiBase"));
+        Console.WriteLine(Configuration.GetConnectionString("SalaryApiBase"));
+        Console.WriteLine(Configuration.GetConnectionString("FilesApiBase"));
+        reportsApi = Refit.RestService.For<IReportsApi>(Configuration.GetConnectionString("ReportsApiBase"), refitSettings);
+        usersApi = Refit.RestService.For<IUsersApi>(Configuration.GetConnectionString("UsersApiBase"), refitSettings);
+        salaryApi = Refit.RestService.For<ISalaryApi>(Configuration.GetConnectionString("SalaryApiBase"), refitSettings);
+        filesApi = Refit.RestService.For<IFilesApi>(Configuration.GetConnectionString("FilesApiBase"), refitSettings);
 
 
         connectionStrings.Token = token;

@@ -2,16 +2,18 @@
 @implements IDisposable
 
 @using Microsoft.Extensions.Logging
+@using Microsoft.Extensions.Configuration
 @using Blazor.FileReader
 @inject IJSRuntime js
 @inject IUsersApi usersApi
 @inject Blazor.FileReader.IFileReaderService fileReaderService
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject Markdig.MarkdownPipeline markdownPipeline
+@inject IConfiguration Configuration
 
 @using System.Net.Http
 
-@inject Microsoft.Extensions.Logging.ILogger<Index> logger
+@inject Microsoft.Extensions.Logging.ILogger<CreateReport> logger
 @inject NavigationManager navigationManager
 
 <style>
@@ -223,12 +225,12 @@ else
             MultipartFormDataContent form = new MultipartFormDataContent();
             using var fileStream = await file.OpenReadAsync();
             var array = new byte[fileInfo.Size];
-            Console.WriteLine($"array {array.Length}");
+            logger.LogDebug($"array {array.Length}");
             var readed = await fileStream.ReadAsync(array, 0, array.Length);
             form.Add(new ByteArrayContent(array, 0, array.Length), "uploadingForm", fileInfo.Name);
 
-            var uri = connectionStrings.UploadFile;
-            Console.WriteLine(uri);
+            var uri = Configuration.GetConnectionString("FilesApiBase") + "/files/upload";
+            logger.LogDebug(uri);
 
             HttpResponseMessage response = await httpClient.PostAsync(uri, form);
             response.EnsureSuccessStatusCode();

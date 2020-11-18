@@ -50,7 +50,7 @@ namespace ITLab.TestFront
                 {
                     AuthorizationHeaderValueGetter = () => Task.FromResult(strings.Token)
                 };
-                return Refit.RestService.For<IUsersApi>(strings.BaseAddress, refitSettings);
+                return Refit.RestService.For<IUsersApi>(Configuration.GetConnectionString("UsersApiBase"), refitSettings);
             });
         }
 
