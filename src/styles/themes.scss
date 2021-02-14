@@ -1,0 +1,134 @@
+@import "@/../node_modules/bootstrap/scss/bootstrap.scss";
+
+$sidebar-width: 220px;
+
+$colorscheme: (
+  black: (
+    darker: #000000,
+    dark:   #1e1e1e,
+    base:   #252526,
+    light:  #333333,
+    lighter:#555555
+  ),
+  white: (
+    darker: #999999,
+    dark:   #adadad,
+    base:   #d6d6d6,
+    light:  #f8f9f9,
+    lighter:#ffffff
+  )
+);
+
+@function getcolor($scheme, $tone: base) {
+  @return map-get(map-get($colorscheme, $scheme), $tone);
+};
+
+$themes: (
+  theme-light: (
+    auth-logo-color: getcolor(black, dark),
+    form-card-background-color: getcolor(white, lighter),
+
+    page-font-color: getcolor(black, dark),
+    page-background-color: getcolor(white, light),
+    title-background-color: getcolor(white, lighter),
+    title-border-color: getcolor(white, base),
+    form-control-background-color: getcolor(white, lighter),
+    table-border-color: getcolor(white, base),
+    typography-elements-color: rgba(0, 0, 0, 0.125),
+
+    sidebar-background-color: getcolor(white, lighter),
+    sidebar-shadow-color: getcolor(white, base),
+    sidebar-group-font-color: getcolor(black, dark),
+    sidebar-section-font-color: getcolor(black, light),
+    sidebar-section-background-color: rgba(0, 0, 0, 0.04),
+    sidebar-active-section-highlight-color: $primary,
+
+    card-list-item-background-color: getcolor(white, lighter),
+
+    event-shifts-places-title-font-color: getcolor(black, dark),
+    event-shifts-places-title-background: getcolor(white, base),
+    event-shifts-places-items-background: getcolor(white, lighter)
+  ),
+
+  theme-dark: (
+    auth-logo-color: getcolor(white, base),
+    form-card-background-color: getcolor(black, dark),
+
+    page-font-color: getcolor(white, base),
+    page-background-color: getcolor(black, dark),
+    title-background-color: getcolor(black, light),
+    title-border-color: getcolor(black, base),
+    form-control-background-color: getcolor(white, base),
+    table-border-color: getcolor(black, darker),
+    typography-elements-color: rgba(0, 0, 0, 0.75),
+
+    sidebar-background-color: getcolor(black, light),
+    sidebar-shadow-color: getcolor(black, base),
+    sidebar-group-font-color: getcolor(white, light),
+    sidebar-section-font-color: getcolor(white, base),
+    sidebar-section-background-color: rgba(0, 0, 0, 0.1),
+    sidebar-active-section-highlight-color: $primary,
+
+    card-list-item-background-color: getcolor(black, light),
+    
+    event-shifts-places-title-font-color: getcolor(white, base),
+    event-shifts-places-title-background: getcolor(black, dark),
+    event-shifts-places-items-background: getcolor(white, base)
+  )
+);
+
+$theme: "";
+$theme_map: map-get($themes, theme-light);
+
+// Theme specific classes
+@each $current_theme, $current_theme_map in $themes {
+  .#{$current_theme}-hidden {
+    .#{$current_theme} & {
+      display: none;
+    }
+  }
+
+  .#{$current_theme}-only {
+    @each $other_theme, $other_theme_map in $themes {
+      @if $current_theme != $other_theme {
+        .#{$other_theme} & {
+          display: none;
+        }
+      }
+    }
+  }
+}
+
+@mixin theme-specific($specified: null) {
+  $old: $theme;
+  $old_map: $theme_map;
+
+  @if ($specified) {
+    $theme: $specified !global;
+    $theme_map: map-get($map: $themes, $key: $specified) !global;
+
+    .#{$theme} & {
+      @content
+    }
+  } @else {
+    @each $current, $current_map in $themes {
+      $theme: $current !global;
+      $theme_map: $current_map !global;
+  
+      .#{$theme} & {
+        @content
+      }
+    }
+  }
+
+  $theme: $old !global;
+  $theme_map: $old_map !global;
+};
+
+@function getstyle($style) {
+  @if map-has-key($theme_map, $style) {
+    @return map-get($theme_map, $style);
+  }
+  @warn "The key `#{$style}` is not available in the `#{$theme}`.";
+  @return null;
+};
