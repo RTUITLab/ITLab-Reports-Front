@@ -6,7 +6,6 @@ import {
   USERS_GET_ALL,
   USERS_GET_ALL_LIST,
   USERS_GET_ONE,
-  USER_ROLES_GET_ALL,
   IUserList
 } from './types';
 
@@ -29,9 +28,5 @@ export const getters: GetterTree<IUsersState, RootState> = {
     return (id: string) => {
       return state.users.find((v) => v.id === id);
     };
-  },
-
-  [USER_ROLES_GET_ALL]: (state) => {
-    return state.userRoles;
   }
 };

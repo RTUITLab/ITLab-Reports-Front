@@ -68,7 +68,8 @@ import { IReportSalary, REPORT_SALARY_GET_ONE } from '../modules/salary';
 
 export enum ReportImplementer {
   Me,
-  Others
+  Others,
+  All
 }
 
 @Component({

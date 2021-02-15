@@ -9,7 +9,6 @@ import { ISalaryState } from './types';
 export * from './types';
 
 export const state: ISalaryState = {
-    eventSalaries: [],
     reportsSalaries: []
 };
 

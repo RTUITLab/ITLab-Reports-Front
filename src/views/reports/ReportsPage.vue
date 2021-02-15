@@ -67,6 +67,18 @@
             </b-col>
           </b-row>
         </b-tab>
+        <b-tab title="Отчёты сотрудников">
+          <br />
+
+          <b-row v-for="report in reportsAboutMe" :key="report.id">
+            <b-col>
+              <report-item
+                :report="report"
+                :implementer="reportImplementer.All"
+              ></report-item>
+            </b-col>
+          </b-row>
+        </b-tab>
       </b-tabs>
     </page-content>
   </div>
@@ -132,7 +144,8 @@ export default class ReportsPage extends Vue {
 
   public reportImplementer = {
     Me: ReportImplementer.Me,
-    Others: ReportImplementer.Others
+    Others: ReportImplementer.Others,
+    All: ReportImplementer.All
   };
 
   // Component methods //

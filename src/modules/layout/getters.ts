@@ -1,7 +1,7 @@
 import { GetterTree } from 'vuex';
 import { RootState } from '@/store';
 
-import { ILayoutState, LAYOUT_PAGES_GET, LAYOUT_GROUPS_GET, ISection } from './types';
+import { ILayoutState, LAYOUT_PAGES_GET } from './types';
 import { RouteConfig } from 'vue-router';
 
 export const getters: GetterTree<ILayoutState, RootState> = {
@@ -25,9 +25,5 @@ export const getters: GetterTree<ILayoutState, RootState> = {
         path: '*'
       }
     ]);
-  },
-
-  [LAYOUT_GROUPS_GET]: (state) => {
-    return state.groups;
   }
 };
