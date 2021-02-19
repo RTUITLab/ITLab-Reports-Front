@@ -24,7 +24,7 @@
         </b-col>
         <b v-else style="padding: 0 15px;">
 				  <div v-if="salary.approved === '' && checkImplementer()">Оплата не указана</div>
-          <div v-else-if="checkImplementer()">{{ `${salary.count} р` }}</div>
+          <div v-else-if="checkImplementer()">{{ `${salary.count} ₽` }}</div>
         </b>
 			</b-row>
 			<hr />
