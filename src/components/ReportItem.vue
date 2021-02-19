@@ -64,11 +64,18 @@
         <b-col v-if="implementer !== 2" cols="12 mr-auto" md="auto">
           <b-button :to="'/reports/' + report.id" variant="primary" class="w-100">Подробнее</b-button>
         </b-col>
-        <b-col v-else cols="12" md="auto" class="ml-auto">
-          <b-button variant="outline-warning" class="auto" @click="saveSalary">Сохранить</b-button>
+        <b-col v-else cols="12" md="4" class="ml-auto">
+          <b-row>
+            <b-col cols="12" md="auto" class="mr-auto">
+              <p v-if="status === 'success'">{{`${salaryDate} ${approver}`}}</p>
+            </b-col>
+            <b-col cols="12" md="auto">
+              <b-button variant="outline-warning" class="auto" @click="saveSalary">Сохранить</b-button>
+            </b-col>
+          </b-row>
         </b-col>
         <b-col v-if="implementer !== 2" md="4" style="display: flex;">
-          <div v-if="salary.approved && checkImplementer()" style="margin: auto 0;">{{ salaryDate }}</div>
+          <div v-if="salary.approved && checkImplementer()" style="margin: auto 0;">{{ salaryDate + ' ' + approver }}</div>
         </b-col>
       </b-row>
 		</div>
@@ -214,6 +221,11 @@ export default class CReportItem extends Vue {
       : this.$store.getters[USERS_GET_ONE](this.report.assignees.implementer) as IUser;
 
     return `${user.lastName} ${user.firstName}`;
+  }
+
+  get approver():string {
+    console.log(this.$store.getters[USERS_GET_ONE](this.salary.approverId) as IUser)
+    return (this.$store.getters[USERS_GET_ONE](this.salary.approverId) as IUser).lastName;
   }
 
   get salary(): IReportSalary {
