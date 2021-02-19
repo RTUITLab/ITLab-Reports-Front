@@ -109,32 +109,42 @@ let vueLifecycles = singleSpaVue({
   },
 });
 
-export const bootstrap = async (props: any) => setTimeout(async () => {
-  vueLifecycles = singleSpaVue({
-    Vue,
-    appOptions: {
-      render: (h: any) => h(App),
-      router: router(userManager),
-      store,
-      el: document.getElementById('reports-page') as HTMLElement
-    },
-  });
+export const bootstrap = async (props: any) => {
+  let interval = setInterval(async () => {
+    if (document.getElementById('reports-page')) {
+      vueLifecycles = singleSpaVue({
+        Vue,
+        appOptions: {
+          render: (h: any) => h(App),
+          router: router(userManager),
+          store,
+          el: document.getElementById('reports-page') as HTMLElement
+        },
+      });
 
-  await vueLifecycles.bootstrap(props);
-}, 500);
+      await vueLifecycles.bootstrap(props);
+      clearInterval(interval);
+    }
+  }, 100);
+}
 
 export const mount = async (props: any) => setTimeout(async () => {
-  vueLifecycles = singleSpaVue({
-    Vue,
-    appOptions: {
-      render: (h: any) => h(App),
-      router: router(userManager),
-      store,
-      el: document.getElementById('reports-page') as HTMLElement
-    },
-  });
+  let interval = setInterval(async () => {
+    if (document.getElementById('reports-page')) {
+      vueLifecycles = singleSpaVue({
+        Vue,
+        appOptions: {
+          render: (h: any) => h(App),
+          router: router(userManager),
+          store,
+          el: document.getElementById('reports-page') as HTMLElement
+        },
+      });
 
-  await vueLifecycles.mount(props);
+      await vueLifecycles.mount(props);
+      clearInterval(interval);
+    }
+  }, 100);
 }, 500);
 
 export const unmount = async (props: any) => setTimeout(async () => {
