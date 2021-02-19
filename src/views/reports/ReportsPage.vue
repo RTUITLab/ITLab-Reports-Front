@@ -4,6 +4,32 @@
     <page-content :loading="loadingInProcess">
       <template slot="header">Отчёты</template>
       <b-tabs>
+        <b-tab v-if="isSalaryAdmin()" title="Отчёты сотрудников">
+          <br />
+
+          <p>Выберите период:</p>
+          <b-row>
+            <b-col cols="12" md="6">
+              <b-form-input type="date" v-model="date.start"></b-form-input>
+            </b-col>
+            <b-col cols="12" md="6">
+              <b-form-input type="date" v-model="date.end"></b-form-input>
+            </b-col>
+          </b-row>
+          
+          <br />
+          <b-form-checkbox v-model="checked">Убрать оценённые</b-form-checkbox>
+          <br />
+          
+          <b-row v-for="report in allReports" :key="report.id">
+            <b-col>
+              <report-item
+                :report="report"
+                :implementer="reportImplementer.All"
+              ></report-item>
+            </b-col>
+          </b-row>
+        </b-tab>
         <b-tab title="Написать">
           <br />
           <p>Опишите, что вы делали за последнее время, что вы считаете важным при оценке вашей работы</p>
@@ -67,18 +93,6 @@
             </b-col>
           </b-row>
         </b-tab>
-        <b-tab title="Отчёты сотрудников">
-          <br />
-
-          <b-row v-for="report in reportsAboutMe" :key="report.id">
-            <b-col>
-              <report-item
-                :report="report"
-                :implementer="reportImplementer.All"
-              ></report-item>
-            </b-col>
-          </b-row>
-        </b-tab>
       </b-tabs>
     </page-content>
   </div>
@@ -113,6 +127,7 @@ import CFileItem from '../../components/FileItem.vue';
 import CMarkdownEditor from '../../components/MarkdownEditor.vue';
 
 import CPageContent from '../../components/layout/PageContent.vue';
+import { REPORT_SALARY_GET_ALL } from '../../../../ITLab-Front/src/modules/salary';
 
 const LOCAL_STORAGE_API_URL = 'api-url';
 
@@ -139,6 +154,13 @@ export default class ReportsPage extends Vue {
 
   public salaries: IReportSalary[] = [];
 
+  // Filters
+  public date = {
+    start: '',
+    end: ''
+  };
+  public checked: boolean = false;
+
   public baseAddress: string = location.origin;
   public filesBaseAddress?: string = configuration.VUE_APP_FILES_BASE_ADDRESS;
 
@@ -152,15 +174,16 @@ export default class ReportsPage extends Vue {
   //////////////////////
 
   public async mounted() {
+    this.subject = (await this.$userManager.getUserId()) || '';
+
     Promise.all([
       this.$store.dispatch(USERS_FETCH_ALL),
       this.$store.dispatch(REPORTS_FETCH_ALL),
-      this.$store.dispatch(REPORT_FILE_FETCH_ALL)
+      this.$store.dispatch(REPORT_FILE_FETCH_ALL),
+      this.$store.dispatch(REPORT_SALARY_FETCH_ALL, this.subject)
     ])
       .then(async () => {
-        this.subject = (await this.$userManager.getUserId()) || '';
         this.loadingInProcess = false;
-        this.$store.dispatch(REPORT_SALARY_FETCH_ALL, this.subject);
       })
       .catch();
 
@@ -208,6 +231,10 @@ export default class ReportsPage extends Vue {
     }
   }
 
+  public isSalaryAdmin() {
+    return this.$userManager.checkITLabClaim('salary.admin');
+  }
+
   get reportsAboutMe() {
     return (this.$store.getters[REPORTS_GET_ALL] as IReportTypeDefault[]).filter((report) =>
       report.assignees.implementer.indexOf(this.subject) > -1
@@ -219,6 +246,23 @@ export default class ReportsPage extends Vue {
       report.assignees.implementer.indexOf(this.subject) === -1
         && report.assignees.reporter.indexOf(this.subject) !== -1
     );
+  }
+
+  get allReports() {
+    let reports = this.$store.getters[REPORTS_GET_ALL] as IReportTypeDefault[];
+
+    if (this.date.start !== '') {
+      reports = reports.filter((report) => (new Date(report.date!)).getTime() >= (new Date(this.date.start)).getTime());
+    }
+    if (this.date.end !== '') {
+      reports = reports.filter((report) => (new Date(report.date!)).getTime() <= (new Date(this.date.end)).getTime() + 24 * 3600000);
+    }
+    if (this.checked === true) {
+      let salaries = this.$store.getters[REPORT_SALARY_GET_ALL] as IReportSalary[];
+      reports = reports.filter((report) => !salaries.find((salary => report.id === salary.reportId)));
+    }
+
+    return reports;
   }
 
   get authors() {

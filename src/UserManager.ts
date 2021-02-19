@@ -51,6 +51,22 @@ export class UserManager {
     return user.profile.role;
   }
 
+  public checkITLabClaim(claim: string): boolean | null {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      return null;
+    }
+    
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    if (!payload || !payload.itlab) {
+      return false;
+    }
+
+    (payload.itlab as string[]).find((_claim) => _claim === claim);
+
+    return !!(payload.itlab as string[]).find((_claim) => _claim === claim);
+  }
+
   public async userHasRole(userRoleName: string): Promise<boolean | null> {
     const user = await this.oidcManager.getUser();
     if (!user) {
