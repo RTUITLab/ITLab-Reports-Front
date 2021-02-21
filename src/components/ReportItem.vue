@@ -34,7 +34,7 @@
 
           <div v-if="isSalaryAdmin() && implementer === 2">
             <p><b>От: {{ assignees.reporter }}</b> <br />
-            <b>О:  {{ assignees.implementer }}</b></p>
+            <b>О:&nbsp;&nbsp;&nbsp;{{ assignees.implementer }}</b></p>
 
             <br />
             <div class="preview">
@@ -56,7 +56,7 @@
           ></b-form-textarea>
           <div v-else-if="salary.approved && checkImplementer()">
             <b>Комментарий</b>
-            <p>{{ salary.description }}</p>
+            <p style="overflow-wrap: break-word">{{ salary.description }}</p>
           </div>
         </b-col>
 			</b-row>
