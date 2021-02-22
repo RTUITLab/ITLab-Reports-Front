@@ -132,13 +132,13 @@ export default class CReportItem extends Vue {
   public salaryForm = {
     count: 0,
     description: ''
-  }
+  };
 
   // Methods //
   ////////////
 
   public mounted() {
-    this.salaryForm.count = parseInt(this.salary.count);
+    this.salaryForm.count = parseInt(this.salary.count, 10);
     this.salaryForm.description = this.salary.description;
   }
 
@@ -181,7 +181,7 @@ export default class CReportItem extends Vue {
             duration: 500,
             type: 'error'
           });
-        })
+        });
     }
   }
 
@@ -212,7 +212,7 @@ export default class CReportItem extends Vue {
     return {
       reporter: `${reporter.lastName} ${reporter.firstName[0]}.`,
       implementer: `${implementer.lastName} ${implementer.firstName[0]}.`
-    }
+    };
   }
 
   get author(): string {
@@ -223,8 +223,7 @@ export default class CReportItem extends Vue {
     return `${user.lastName} ${user.firstName}`;
   }
 
-  get approver():string {
-    console.log(this.$store.getters[USERS_GET_ONE](this.salary.approverId) as IUser)
+  get approver(): string {
     return (this.$store.getters[USERS_GET_ONE](this.salary.approverId) as IUser).lastName;
   }
 

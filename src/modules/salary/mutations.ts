@@ -26,7 +26,5 @@ export const mutations: MutationTree<ISalaryState> = {
     if (!done) {
       state.reportsSalaries.push(payload);
     }
-
-    console.log(state.reportsSalaries)
   }
 };

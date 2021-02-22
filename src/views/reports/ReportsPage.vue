@@ -255,11 +255,12 @@ export default class ReportsPage extends Vue {
       reports = reports.filter((report) => (new Date(report.date!)).getTime() >= (new Date(this.date.start)).getTime());
     }
     if (this.date.end !== '') {
-      reports = reports.filter((report) => (new Date(report.date!)).getTime() <= (new Date(this.date.end)).getTime() + 24 * 3600000);
+      reports = reports.filter((report) => (new Date(report.date!))
+        .getTime() <= (new Date(this.date.end)).getTime() + 24 * 3600000);
     }
     if (this.checked === true) {
-      let salaries = this.$store.getters[REPORT_SALARY_GET_ALL] as IReportSalary[];
-      reports = reports.filter((report) => !salaries.find((salary => report.id === salary.reportId)));
+      const salaries = this.$store.getters[REPORT_SALARY_GET_ALL] as IReportSalary[];
+      reports = reports.filter((report) => !salaries.find(((salary) => report.id === salary.reportId)));
     }
 
     return reports;

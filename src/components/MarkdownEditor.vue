@@ -132,7 +132,7 @@ export default class CMarkdownEditor extends Vue {
     this.$watch('value', (value: string) => {
       this.report = value;
     });
-    
+
     this.$watch('report', (value: string) => {
       this.$emit('input', value);
     });
@@ -362,7 +362,7 @@ export default class CMarkdownEditor extends Vue {
 
           this.report = this.report.replace(
             `[Uploading ${file.name}...]()`,
-            `${isImg ? '!' : ''}[${fileData.filename}](${this.origin}mfs/download/${fileData.id})`
+            `${isImg ? '!' : ''}[${fileData.filename}](${this.origin}api/mfs/download/${fileData.id})`
           );
         } catch {
           this.$notify({
@@ -408,7 +408,7 @@ export default class CMarkdownEditor extends Vue {
   }
 
   public url(name: string) {
-    if (location.origin.indexOf(':') > -1) {
+    if (process.env.NODE_ENV === 'development') {
       return location.origin.split(':9')[0] + ':9001/' + name;
     } else {
       return this.$g.FRONT_POSTFIX + name;

@@ -5,7 +5,7 @@
   "scripts": {
     "start": "npm run serve",
     "serve": "vue-cli-service serve --port 9003",
-    "build": "vue-cli-service build && node ./postBuild.js > deploy/ITLab-Front/app.txt",
+    "build": "vue-cli-service build && node ./postBuild.js > deploy/ITLab-Reports-Front/app.txt",
     "test:unit": "vue-cli-service test:unit",
     "lint": "vue-cli-service lint",
     "developbuild": "vue-cli-service build --mode development"
@@ -52,6 +52,7 @@
     "ts-jest": "^23.10.5",
     "typescript": "^3.2.2",
     "vue-cli-plugin-single-spa": "~1.1.2",
+    "vue-svg-loader": "^0.16.0",
     "vue-template-compiler": "^2.5.21"
   }
 }

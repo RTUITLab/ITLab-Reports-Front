@@ -127,7 +127,7 @@ export default class CFileItem extends Vue {
   }
 
   get origin(): string {
-    if (location.origin.indexOf(':') > -1) {
+    if (process.env.NODE_ENV === 'development') {
       return localStorage.getItem('api-url') || '';
     } else {
       return location.origin + '/api/';

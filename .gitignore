@@ -9,7 +9,7 @@ node_modules
 
 # Build related
 tools/**
-deploy/ITLab-Front
+deploy/ITLab-Reports-Front
 
 
 # Log files

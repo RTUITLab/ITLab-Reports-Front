@@ -1,5 +1,4 @@
 import Oidc from 'oidc-client';
-import configuration from './stuff/configuration';
 
 export class UserManager {
 
@@ -56,7 +55,7 @@ export class UserManager {
     if (!token) {
       return null;
     }
-    
+
     const payload = JSON.parse(atob(token.split('.')[1]));
     if (!payload || !payload.itlab) {
       return false;

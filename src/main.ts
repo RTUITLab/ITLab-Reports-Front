@@ -64,7 +64,7 @@ Vue.config.productionTip = false;
 let vueLifecycles;
 
 export const bootstrap = async (props: any) => {
-  let interval = setInterval(async () => {
+  const interval = setInterval(async () => {
     if (document.getElementById('reports-page')) {
       Vue.prototype.$userManager = props.userManager;
       vueLifecycles = singleSpaVue({
@@ -81,10 +81,10 @@ export const bootstrap = async (props: any) => {
       clearInterval(interval);
     }
   }, 100);
-}
+};
 
 export const mount = async (props: any) => setTimeout(async () => {
-  let interval = setInterval(async () => {
+  const interval = setInterval(async () => {
     if (document.getElementById('reports-page')) {
       Vue.prototype.$userManager = props.userManager;
       vueLifecycles = singleSpaVue({
