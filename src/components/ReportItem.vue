@@ -100,7 +100,7 @@ import { IReportSalary, REPORT_SALARY_GET_ONE } from '../modules/salary';
 
 import MarkdownItVue from 'markdown-it-vue';
 import 'markdown-it-vue/dist/markdown-it-vue.css';
-import { REPORT_SALARY_COMMIT } from '../../../ITLab-Front/src/modules/salary';
+import { REPORT_SALARY_COMMIT } from '../modules/salary';
 
 Vue.component(MarkdownItVue.name, MarkdownItVue);
 
