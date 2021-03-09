@@ -127,7 +127,7 @@ import CFileItem from '../../components/FileItem.vue';
 import CMarkdownEditor from '../../components/MarkdownEditor.vue';
 
 import CPageContent from '../../components/layout/PageContent.vue';
-import { REPORT_SALARY_GET_ALL } from '../../modules/salary';
+import { REPORT_SALARY_GET_ALL } from '../../../../ITLab-Front/src/modules/salary';
 
 const LOCAL_STORAGE_API_URL = 'api-url';
 
