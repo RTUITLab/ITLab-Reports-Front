@@ -6,23 +6,88 @@
 trigger:
 - master
 - develop
+- typescript
 
 name: $(BuildID)-$(Build.SourceBranchName)
 
 pool:
   vmImage: 'ubuntu-latest'
 
-
-steps:
-- task: Docker@2
-  inputs:
-    containerRegistry: 'rtuitlab connection by admin'
-    repository: 'rtuitlab/itlab-testfront-$(Build.SourceBranchName)'
-    command: 'buildAndPush'
-    Dockerfile: 'Dockerfile'
-    buildContext: '.'
-    tags: |
+variables:
+  ${{ if eq(variables['Build.SourceBranchName'], 'develop') }}:
+    buildImage: true
+    deployService: true
+    deployEnvironment: development
+    imageTags: |
+      $(Build.BuildId)
+      develop
+    serviceName: itlab-reports-develop_front
+  ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
+    buildImage: true
+    deployService: true
+    deployEnvironment: production
+    imageTags: |
       $(Build.BuildId)
       latest
+    serviceName: itlab-reports_front
 
 
+stages:
+  - stage: build
+    displayName: Build
+    jobs:
+      - job: buildFront
+        steps:
+          - task: file-creator@6
+            displayName: Create .env file
+            inputs:
+              filepath: '.env'
+              filecontent: 'NODE_ENV=production'
+              fileoverwrite: true
+              endWithNewLine: true
+          - task: Npm@1
+            displayName: npm ci
+            inputs:
+              command: 'ci'
+          - task: Npm@1
+            displayName: npm run build
+            inputs:
+              command: 'custom'
+              customCommand: 'run build'
+          - publish: Deploy
+            artifact: itlab-reports-front-pack
+  - stage: buildImage
+    condition: ${{variables.buildImage}}
+    jobs:
+      - job:
+        steps:
+        - download: current
+          displayName: Download itlab-reports-front-pack
+          artifact: 'itlab-reports-front-pack'
+        - task: Docker@2
+          inputs:
+            containerRegistry: 'rtuitlab connection by admin'
+            repository: 'rtuitlab/itlab-reports-front'
+            command: 'buildAndPush'
+            Dockerfile: '$(Pipeline.Workspace)/itlab-reports-front-pack/Dockerfile'
+            buildContext: '$(Pipeline.Workspace)/itlab-reports-front-pack'
+            tags: ${{variables.imageTags}}
+  - stage: deploy
+    condition: ${{variables.deployService}}
+    jobs:
+      - deployment: deploy
+        displayName: Deploy
+        pool:
+          vmImage: "ubuntu-latest"
+        environment: ${{variables.deployEnvironment}}
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: none
+                - task: SSH@0
+                  inputs:
+                    sshEndpoint: 'swarm manager'
+                    runOptions: 'commands'
+                    commands: 'docker service update --image rtuitlab/itlab-reports-front:$(Build.BuildId) ${{variables.serviceName}}'
+                    readyTimeout: '20000'

@@ -1,0 +1,144 @@
+@import '@/styles/themes.scss';
+
+/* Theme adaptive form control */
+
+blockquote {
+  margin: 1.5em 20px;
+  padding: 0.5em 10px;
+  
+  p:last-child {
+    margin-bottom: 0;
+  }
+
+  @include theme-specific() {
+    box-shadow: -10px 0 0 getstyle(typography-elements-color);
+  }
+}
+
+.form-control {
+  @include theme-specific() {
+    background-color: getstyle(form-control-background-color);
+  }
+}
+
+.tabs .tab-content .tab-pane:focus {
+  outline: none;
+}
+
+.nav.nav-tabs {
+  @include theme-specific(theme-light) {
+    border-bottom: 1px solid #dee2e6;
+  }
+  @include theme-specific(theme-dark) {
+    border-bottom: 1px solid getstyle(card-list-item-background-color);
+  }
+  .nav-item {
+    margin-bottom: 0;
+    .nav-link {
+      @include theme-specific() {
+        background-color: getstyle(page-background-color);
+      }
+      &.active {
+        @include theme-specific() {
+          color: getstyle(page-font-color);
+          background-color: getstyle(card-list-item-background-color);
+        }
+      }
+    }
+  }
+}
+
+.table th,
+.table td {
+  @include theme-specific() {
+    border-color: getstyle(table-border-color);
+  }
+}
+
+.modal-content {
+  @include theme-specific() {
+    background-color: getstyle(page-background-color);
+    .close {
+      color: getstyle(page-font-color);
+      &:not(:disabled):not(.disabled):hover,
+      &:not(:disabled):not(.disabled):focus {
+        color: getstyle(page-font-color);
+      }
+    }
+    .modal-header {
+      border-bottom: 1px solid getstyle(table-border-color);
+    }
+    .modal-footer {
+      border-top: 1px solid getstyle(table-border-color);
+    }
+  }
+}
+
+.mx-calendar {
+  @include theme-specific() {
+    background-color: getstyle(form-control-background-color);
+    color: #495057;
+    .mx-panel-date td.last-month:not(.actived),
+    .mx-panel-date td.next-month:not(.actived) {
+      color: lighten(#495057, 25);
+    }
+  }
+}
+
+.card {
+  @include theme-specific() {
+    background-color: getstyle(card-list-item-background-color);
+  }
+}
+
+/* markdown */
+
+.markdown {
+  input[type='checkbox'] {
+    pointer-events: none;
+  }
+  img {
+    max-width: 100%;
+  }
+}
+
+/* Bootstrap fix */
+
+.nav-tabs {
+  outline: none;
+}
+
+.fa-icon {
+  position: relative;
+  top: -2px;
+}
+
+/* Usefull stuff */
+
+.noselect {
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  -o-user-select: none;
+  user-select: none;
+}
+
+.fullscreen-height {
+  min-height: 100vh;
+}
+
+.form-card {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.125);
+  border-radius: 0;
+  @include media-breakpoint-down(sm) {
+    border: Default;
+  }
+  @include theme-specific() {
+    background-color: getstyle(form-card-background-color);
+    .logo {
+      fill: getstyle(auth-logo-color);
+    }
+  }
+}
