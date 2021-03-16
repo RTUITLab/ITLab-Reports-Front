@@ -46,10 +46,10 @@ stages:
             inputs:
               command: 'custom'
               customCommand: 'run build'
-          - publish: Deploy
+          - publish: deploy
             artifact: itlab-reports-front-pack
   - stage: buildImage
-    condition: ${{variables.buildImage}}
+    condition: and(succeeded(), ${{variables.buildImage}})
     jobs:
       - job:
         steps:
@@ -65,7 +65,7 @@ stages:
             buildContext: '$(Pipeline.Workspace)/itlab-reports-front-pack'
             tags: ${{variables.imageTags}}
   - stage: deploy
-    condition: ${{variables.deployService}}
+    condition: and(succeeded(), ${{variables.deployService}})
     jobs:
       - deployment: deploy
         displayName: Deploy
