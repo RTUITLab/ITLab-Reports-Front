@@ -61,9 +61,7 @@ export class UserManager {
       return false;
     }
 
-    (payload.itlab as string[]).find((_claim) => _claim === claim);
-
-    return !!(payload.itlab as string[]).find((_claim) => _claim === claim);
+    return JSON.stringify(payload.itlab).includes(claim);
   }
 
   public async userHasRole(userRoleName: string): Promise<boolean | null> {
