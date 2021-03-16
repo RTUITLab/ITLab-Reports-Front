@@ -1,11 +1,5 @@
-# ASP.NET
-# Build and test ASP.NET projects.
-# Add steps that publish symbols, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/apps/aspnet/build-aspnet-4
-
 trigger:
 - master
-- develop
 - typescript
 
 name: $(BuildID)-$(Build.SourceBranchName)
@@ -14,14 +8,11 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  ${{ if eq(variables['Build.SourceBranchName'], 'develop') }}:
-    buildImage: true
-    deployService: true
-    deployEnvironment: development
-    imageTags: |
-      $(Build.BuildId)
-      develop
-    serviceName: itlab-reports-develop_front
+  buildImage: false
+  deployService: false
+  deployEnvironment: no
+  imageTags: no
+  serviceName: no
   ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
     buildImage: true
     deployService: true
