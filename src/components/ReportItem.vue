@@ -19,7 +19,7 @@
           </strong>
         </b-col>
         <b-col v-if="isSalaryAdmin() && implementer === 2" md="4">
-          <b-form-input type="number" v-model="salaryForm.count" style="display: inline-block; width: calc(100% - 20px);" placeholder="Стоимость"></b-form-input>
+          <b-form-input type="number" v-model="salaryForm.count" style="display: inline-block; width: calc(100% - 20px);" placeholder="Оплата"></b-form-input>
           <div style="display: inline-block; margin-left: 10px">₽</div>
         </b-col>
         <b v-else style="padding: 0 15px;">
@@ -163,7 +163,7 @@ export default class CReportItem extends Vue {
     // @ts-ignore
     if (this.salaryForm.count === '') {
       this.$notify({
-        title: `Не заполнено поле Стоимость`,
+        title: `Не заполнено поле Оплата`,
         duration: 500,
         type: 'error'
       });
