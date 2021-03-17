@@ -424,10 +424,10 @@ export default class CMarkdownEditor extends Vue {
   }
 
   get origin(): string {
-    if (location.origin.indexOf(':') > -1) {
+    if (location.origin.indexOf('http:') > -1) {
       return localStorage.getItem('api-url') || '';
     } else {
-      return location.origin + '/api/';
+      return location.origin + '/';
     }
   }
 
