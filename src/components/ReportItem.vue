@@ -194,7 +194,7 @@ export default class CReportItem extends Vue {
   }
 
   get salaryDate(): string {
-    return moment(this.report.date).format('DD.MM.YYYY');
+    return moment(this.salary.approved).format('DD.MM.YYYY');
   }
 
   get dateCalendar(): string {
