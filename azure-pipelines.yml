@@ -45,7 +45,7 @@ stages:
             displayName: Create .env file
             inputs:
               filepath: '.env'
-              filecontent: NODE_ENV=${{deployEnvironment}}
+              filecontent: NODE_ENV=${{ deployEnvironment }}
               fileoverwrite: true
               endWithNewLine: true
           - task: Npm@1
