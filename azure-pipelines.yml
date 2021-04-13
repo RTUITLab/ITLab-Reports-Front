@@ -1,6 +1,6 @@
 trigger:
 - master
-- typescript
+- develop
 
 name: $(BuildID)-$(Build.SourceBranchName)
 
@@ -8,13 +8,24 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  ${{ if notIn(variables['Build.SourceBranchName'], 'master') }}:
+  ${{ if notIn(variables['Build.SourceBranchName'], 'master', 'develop') }}:
+    buildCommand: 'run developbuild'
     buildImage: false
     deployService: false
-    deployEnvironment: no
-    imageTags: no
-    serviceName: no
+    deployEnvironment: 'no'
+    imageTags: 'no'
+    serviceName: 'no'
+  ${{ if eq(variables['Build.SourceBranchName'], 'develop') }}:
+    buildCommand: 'run developbuild'
+    buildImage: true
+    deployService: true
+    deployEnvironment: development
+    imageTags: |
+      $(Build.BuildId)
+      develop
+    serviceName: itlab_reports-develop-front
   ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
+    buildCommand: 'run build'
     buildImage: true
     deployService: true
     deployEnvironment: production
@@ -34,7 +45,7 @@ stages:
             displayName: Create .env file
             inputs:
               filepath: '.env'
-              filecontent: 'NODE_ENV=production'
+              filecontent: 'NODE_ENV=${{deployEnvironment}}'
               fileoverwrite: true
               endWithNewLine: true
           - task: Npm@1
@@ -45,7 +56,7 @@ stages:
             displayName: npm run build
             inputs:
               command: 'custom'
-              customCommand: 'run build'
+              customCommand: buildCommand
           - publish: deploy
             artifact: itlab-reports-front-pack
   - stage: buildImage
