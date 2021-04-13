@@ -3,7 +3,7 @@
   <div id="reports-app">
     <notifications position="top right"></notifications>
     <router-view />
-  </div>
+  </div> 
 </template>
 <!-- TEMPLATE END -->
 
