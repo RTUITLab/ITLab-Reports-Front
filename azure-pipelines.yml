@@ -19,7 +19,7 @@ variables:
     buildCommand: 'run developbuild'
     buildImage: true
     deployService: true
-    deployEnvironment: development
+    deployEnvironment: 'development'
     imageTags: |
       $(Build.BuildId)
       develop
@@ -28,7 +28,7 @@ variables:
     buildCommand: 'run build'
     buildImage: true
     deployService: true
-    deployEnvironment: production
+    deployEnvironment: 'production'
     imageTags: |
       $(Build.BuildId)
       latest
