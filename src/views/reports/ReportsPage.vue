@@ -160,6 +160,7 @@ export default class ReportsPage extends Vue {
     end: ''
   };
   public checked: boolean = false;
+  public showing: number = 10;
 
   public baseAddress: string = location.origin;
   public filesBaseAddress?: string = configuration.VUE_APP_FILES_BASE_ADDRESS;
@@ -187,6 +188,14 @@ export default class ReportsPage extends Vue {
       })
       .catch();
 
+
+    let scrolling = document.body;
+    console.log(scrolling)
+    document.addEventListener('scroll', () => {
+      if (window.scrollY / (document.body.clientHeight - window.innerHeight) > 0.8) {
+        this.showing += 10;
+      }
+    });
   }
 
   // Methods //
@@ -263,7 +272,7 @@ export default class ReportsPage extends Vue {
       reports = reports.filter((report) => !salaries.find(((salary) => report.id === salary.reportId)));
     }
 
-    return reports;
+    return reports.slice(0, this.showing);
   }
 
   get authors() {
