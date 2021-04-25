@@ -1,0 +1,17 @@
+{
+    "part": 3,
+    "groups": [
+      {
+        "name": "general",
+        "title": "Общее",
+        "sections": [
+          {
+            "name": "reports",
+            "title": "Отчёты",
+            "homeURL": "/reports"
+          }
+        ]
+      }
+    ]
+  }
+  
