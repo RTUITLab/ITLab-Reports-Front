@@ -1,6 +1,6 @@
 trigger:
 - master
-- typescript
+- develop
 
 name: $(BuildID)-$(Build.SourceBranchName)
 
@@ -8,16 +8,27 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  ${{ if notIn(variables['Build.SourceBranchName'], 'master') }}:
+  ${{ if notIn(variables['Build.SourceBranchName'], 'master', 'develop') }}:
+    buildCommand: 'run developbuild'
     buildImage: false
     deployService: false
-    deployEnvironment: no
-    imageTags: no
-    serviceName: no
-  ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
+    deployEnvironment: 'no'
+    imageTags: 'no'
+    serviceName: 'no'
+  ${{ if eq(variables['Build.SourceBranchName'], 'develop') }}:
+    buildCommand: 'run developbuild'
     buildImage: true
     deployService: true
-    deployEnvironment: production
+    deployEnvironment: 'development'
+    imageTags: |
+      $(Build.BuildId)
+      develop
+    serviceName: itlab-develop_reports-front
+  ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
+    buildCommand: 'run build'
+    buildImage: true
+    deployService: true
+    deployEnvironment: 'production'
     imageTags: |
       $(Build.BuildId)
       latest
@@ -34,7 +45,7 @@ stages:
             displayName: Create .env file
             inputs:
               filepath: '.env'
-              filecontent: 'NODE_ENV=production'
+              filecontent: NODE_ENV=${{variables.deployEnvironment}}
               fileoverwrite: true
               endWithNewLine: true
           - task: Npm@1
@@ -45,7 +56,7 @@ stages:
             displayName: npm run build
             inputs:
               command: 'custom'
-              customCommand: 'run build'
+              customCommand: ${{variables.buildCommand}}
           - publish: deploy
             artifact: itlab-reports-front-pack
   - stage: buildImage
@@ -57,8 +68,18 @@ stages:
           displayName: Download itlab-reports-front-pack
           artifact: 'itlab-reports-front-pack'
         - task: Docker@2
+          displayName: Build image for docker hub
           inputs:
             containerRegistry: 'rtuitlab connection by admin'
+            repository: 'rtuitlab/itlab-reports-front'
+            command: 'buildAndPush'
+            Dockerfile: '$(Pipeline.Workspace)/itlab-reports-front-pack/Dockerfile'
+            buildContext: '$(Pipeline.Workspace)/itlab-reports-front-pack'
+            tags: ${{variables.imageTags}}
+        - task: Docker@2
+          displayName: Build image for private docker registry
+          inputs:
+            containerRegistry: 'private rtuitlab registry'
             repository: 'rtuitlab/itlab-reports-front'
             command: 'buildAndPush'
             Dockerfile: '$(Pipeline.Workspace)/itlab-reports-front-pack/Dockerfile'
@@ -81,5 +102,5 @@ stages:
                   inputs:
                     sshEndpoint: 'swarm manager'
                     runOptions: 'commands'
-                    commands: 'docker service update --image rtuitlab/itlab-reports-front:$(Build.BuildId) ${{variables.serviceName}}'
+                    commands: 'docker service update --image registry.rtuitlab.dev/rtuitlab/itlab-reports-front:$(Build.BuildId) ${{variables.serviceName}} --with-registry-auth'
                     readyTimeout: '20000'
